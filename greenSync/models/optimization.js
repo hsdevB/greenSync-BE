@@ -1,6 +1,6 @@
 import {Model, DataTypes} from "sequelize";
 
-class Optimalization extends Model {
+class Optimization extends Model {
     static init(sequelize) {
         return super.init(
             {
@@ -22,17 +22,17 @@ class Optimalization extends Model {
             },
             {
                 sequelize,
-                tableName: 'Optimalization',
+                tableName: 'Optimization',
                 timestamps: true,
             }
         );
     }
     static associate(db) {
-        db.Optimalization.belongsTo(db.Farm, { 
+        db.Optimization.belongsTo(db.Farm, { 
             foreignKey: 'farmId',  
             targetKey: 'farmCode',
             as: 'farm' 
         });
     }
 };
-export default Optimalization;    
+export default Optimization;    

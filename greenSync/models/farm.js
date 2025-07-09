@@ -55,9 +55,9 @@ class Farm extends Model {
             foreignKey: 'farmId',
             as: 'weathers'
         });
-        db.Farm.hasMany(db.Optimalization, {
+        db.Farm.hasMany(db.Optimization, {
             foreignKey: 'farmId',
-            as: 'optimalizations'
+            as: 'optimizations'
         });
     }
 }
