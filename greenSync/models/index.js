@@ -4,7 +4,7 @@ import CarbonDioxide from './carbonDioxide.js';
 import Farm from './farm.js';
 import Humidity from './humidity.js';
 import Nutrient from './nutrient.js';
-import Optimalization from './optimalization.js';
+import Optimization from './optimization.js';
 import Temperature from './temperature.js';
 import Weather from './weather.js';
 
@@ -18,7 +18,7 @@ db.CarbonDioxide = CarbonDioxide;
 db.Farm = Farm;
 db.Humidity = Humidity;
 db.Nutrient = Nutrient;
-db.Optimalization = Optimalization;
+db.Optimization = Optimization;
 db.Temperature = Temperature;
 db.Weather = Weather;
 
@@ -28,7 +28,7 @@ CarbonDioxide.init(sequelize);
 Farm.init(sequelize);
 Humidity.init(sequelize);
 Nutrient.init(sequelize);
-Optimalization.init(sequelize);
+Optimization.init(sequelize);
 Temperature.init(sequelize);
 Weather.init(sequelize);
 
