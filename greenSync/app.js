@@ -4,6 +4,7 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 import cookieParser from 'cookie-parser';
 import logger from 'morgan';
+import './mqtt/mqttClient.js';
 
 import indexRouter from './routes/index.js';
 // import usersRouter from './routes/users.js';
