@@ -1,0 +1,9 @@
+{
+  "version": "1",
+  "name": "greensync",
+  "type": "collection",
+  "ignore": [
+    "node_modules",
+    ".git"
+  ]
+}

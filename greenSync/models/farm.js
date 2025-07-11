@@ -61,5 +61,5 @@ class Farm extends Model {
         });
     }
 }
-// module.exports = Farm;
+
 export default Farm;

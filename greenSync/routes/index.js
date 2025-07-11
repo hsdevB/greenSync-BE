@@ -1,9 +1,15 @@
 import express from 'express';
-const router = express.Router();
 
-/* GET home page. */
-router.get('/', function(req, res, next) {
-  res.render('index', { title: 'Express' });
-});
+import loginRouter from './login.js';   
+import authRouter from './auth.js';     
+import farmRouter from './farm.js';     
+import signupRouter from './signup.js'; 
 
-export default router;
+const apirouter = express.Router();
+
+apirouter.use('/login', loginRouter);
+apirouter.use('/auth', authRouter);
+apirouter.use('/farm', farmRouter);
+apirouter.use('/signup', signupRouter);
+
+export default apirouter;

@@ -1,0 +1,22 @@
+meta {
+  name: 회원가입
+  type: http
+  seq: 4
+}
+
+post {
+  url: http://localhost:3000/api/signup
+  body: json
+  auth: inherit
+}
+
+body:json {
+  {
+    "farmCode": "8194UTM",
+    "userId" : "test1",
+    "name" : "관리자1",
+    "password" : "1234",
+    "email" : "test@naver.com",
+    "phoneNumber" : "010-1234-5678"
+  }
+}
