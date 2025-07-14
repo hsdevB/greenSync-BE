@@ -4,7 +4,7 @@ import { sequelize } from './models/index.js';
 import logger from './utils/logger.js';
 
 // Routes
-import authRouter from './routes/index.js';
+import Router from './routes/index.js';
 
 dotenv.config();
 
@@ -16,7 +16,7 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 // API Routes
-app.use('/api', authRouter);
+app.use('/', Router);
 
 // Health Check
 app.get('/health', (req, res) => {
