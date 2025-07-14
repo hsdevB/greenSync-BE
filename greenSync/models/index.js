@@ -38,15 +38,5 @@ Object.keys(db).forEach(modelName => {
     db[modelName].associate(db);
   }
 });
-export{
-  sequelize,
-  db,
-  User,
-  Farm,
-}
-export default {
-    sequelize,
-    db,
-    User,
-    Farm,
-  };
+
+export default db;
