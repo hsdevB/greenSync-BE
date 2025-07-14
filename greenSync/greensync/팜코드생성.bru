@@ -1,0 +1,11 @@
+meta {
+  name: 팜코드생성
+  type: http
+  seq: 1
+}
+
+get {
+  url: http://localhost:3000/api/farm/farmcode
+  body: json
+  auth: inherit
+}
