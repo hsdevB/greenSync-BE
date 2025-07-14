@@ -2,10 +2,10 @@ import express from 'express';
 import LoginService from '../services/loginService.js';
 import logger from '../utils/logger.js';
 
-const apiRouter = express.Router();
+const loginRouter = express.Router();
 
 // 로그인
-apiRouter.post('/', async (req, res) => {
+loginRouter.post('/', async (req, res) => {
     try {
         const params = {
             userId: req.body.userId,
@@ -37,4 +37,4 @@ apiRouter.post('/', async (req, res) => {
     }
 });
 
-export default apiRouter;
+export default loginRouter;

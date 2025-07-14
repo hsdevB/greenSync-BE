@@ -2,10 +2,10 @@ import express from 'express';
 import FarmService from '../services/farmService.js';
 import logger from '../utils/logger.js';
 
-const apiRouter = express.Router();
+const farmRouter = express.Router();
 
 // 팜코드 생성 및 발급
-apiRouter.get('/farmcode', async (req, res) => {
+farmRouter.get('/farmcode', async (req, res) => {
   try {
     logger.info('팜코드 생성 요청');
     
@@ -27,4 +27,4 @@ apiRouter.get('/farmcode', async (req, res) => {
   }
 });
 
-export default apiRouter;
+export default farmRouter;

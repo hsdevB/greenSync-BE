@@ -2,10 +2,10 @@ import express from 'express';
 import UserService from '../services/userService.js';
 import logger from '../utils/logger.js';
 
-const apiRouter = express.Router();
+const signupRouter = express.Router();
 
 // 회원가입
-apiRouter.post('/', async (req, res) => {
+signupRouter.post('/', async (req, res) => {
     try {
         const params = {
             farmCode: req.body.farmCode,
@@ -35,4 +35,4 @@ apiRouter.post('/', async (req, res) => {
     }
 });
 
-export default apiRouter;
+export default signupRouter;
