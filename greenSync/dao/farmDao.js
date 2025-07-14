@@ -7,7 +7,7 @@ class FarmDao {
   static async insert(params) {
     try {
       const inserted = await Farm.create(params);
-      return { insertedId: inserted.id, farmCode: inserted.farmCode };
+      return { farmId: inserted.id, farmCode: inserted.farmCode };
     } catch (err) {
       logger.error(`farmDao.insert error: ${err.message}`);
       throw err;
