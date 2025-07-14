@@ -1,70 +1,84 @@
-import createError from 'http-errors';
 import express from 'express';
-import path from 'path';
-import { fileURLToPath } from 'url';
-import cookieParser from 'cookie-parser';
-import logger from 'morgan';
+import dotenv from 'dotenv';
+import { sequelize } from './models/index.js';
+import logger from './utils/logger.js';
 
-import indexRouter from './routes/index.js';
-// import usersRouter from './routes/users.js';
+// Routes
+import authRouter from './routes/index.js';
 
-import db from './models/index.js';
-
-// ES6에서 __dirname 대체
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
+dotenv.config();
 
 const app = express();
+const PORT = process.env.PORT || 3000;
 
-// view engine setup
-app.set('views', path.join(__dirname, 'views'));
-app.set('view engine', 'jade');
-
-app.use(logger('dev'));
+// Middleware
 app.use(express.json());
-app.use(express.urlencoded({ extended: false }));
-app.use(cookieParser());
-app.use(express.static(path.join(__dirname, 'public')));
+app.use(express.urlencoded({ extended: true }));
 
-app.use('/', indexRouter);
-// app.use('/users', usersRouter);
+// API Routes
+app.use('/api', authRouter);
 
-// catch 404 and forward to error handler
-app.use(function(req, res, next) {
-  next(createError(404));
+// Health Check
+app.get('/health', (req, res) => {
+  res.status(200).json({
+    success: true,
+    message: 'GreenSync API Server is running!',
+    timestamp: new Date().toISOString()
+  });
 });
 
-// error handler
-app.use(function(err, req, res, next) {
-  // set locals, only providing error in development
-  res.locals.message = err.message;
-  res.locals.error = req.app.get('env') === 'development' ? err : {};
-
-  // render the error page
-  res.status(err.status || 500);
-  res.render('error');
+// Error Handler
+app.use((err, req, res, next) => {
+  logger.error(`Error: ${err.message}`);
+  res.status(500).json({
+    success: false,
+    message: err.message
+  });
 });
 
-// 개발 환경에서 테이블 생성/수정을 위한 sync 옵션
+// 404 Handler
+app.use('*', (req, res) => {
+  res.status(404).json({
+    success: false,
+    message: 'API endpoint not found'
+  });
+});
+
+// 개발 환경에서 테이블 생성/수정을 위한 sync 옵션 (GitHub 버전에서 가져온 부분)
 const syncOptions = {
-  force: true,  // true로 설정하면 기존 테이블을 삭제하고 재생성
-  alter: false    // true로 설정하면 테이블 구조를 변경
+  force: false,  // true로 설정하면 기존 테이블을 삭제하고 재생성 (주의!)
+  alter: process.env.NODE_ENV === 'development'  // 개발환경에서만 테이블 구조 변경
 };
 
-db.sequelize
-  .sync(syncOptions)
-  .then(() => {
-    console.log("DB 연결 완료 및 테이블 동기화 성공");
+// 데이터베이스 연결 및 서버 시작
+const startServer = async () => {
+  try {
+    // 데이터베이스 연결 테스트
+    await sequelize.authenticate();
+    logger.info('데이터베이스 연결 성공');
     
-    // 생성된 테이블 목록 확인
-    return db.sequelize.getQueryInterface().showAllTables();
-  })
-  .then((tableNames) => {
-    console.log("생성된 테이블 목록:", tableNames);
-  })
-  .catch((err) => {
-    console.error("DB 연결 또는 테이블 생성 실패:", err);
-    process.exit(1);  // 실패시 프로세스 종료
-  });
+    // 테이블 동기화 (GitHub 버전의 방식 적용)
+    // if (process.env.NODE_ENV === 'development') {
+    //   await sequelize.sync(syncOptions);
+    //   logger.info('데이터베이스 테이블 동기화 완료');
+      
+    //   // 생성된 테이블 목록 확인 (GitHub 버전에서 가져온 기능)
+    //   const tableNames = await sequelize.getQueryInterface().showAllTables();
+    //   logger.info(`생성된 테이블 목록: ${tableNames.join(', ')}`);
+    // }
+    
+    // 서버 시작
+    app.listen(PORT, () => {
+      logger.info(`🚀 GreenSync API Server started on port ${PORT}`);
+      logger.info(`📖 Health Check: http://localhost:${PORT}/health`);
+    });
+    
+  } catch (err) {
+    logger.error(`서버 시작 실패: ${err.message}`);
+    process.exit(1);
+  }
+};
+
+startServer();
 
 export default app;
