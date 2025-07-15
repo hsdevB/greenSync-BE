@@ -2,6 +2,7 @@ import express from 'express';
 import dotenv from 'dotenv';
 import models from './models/index.js';
 import logger from './utils/logger.js';
+import mqttClient from './mqtt/mqttClient.js';
 
 // Routes
 import Router from './routes/index.js';
