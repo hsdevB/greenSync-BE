@@ -8,7 +8,7 @@ class Farm extends Model {
                     type: DataTypes.STRING(10),
                     allowNull: false,
                     comment: '농장코드',
-                    unique: true
+                    // unique: true
                 },
                 farmType: {
                     type: DataTypes.STRING(20),

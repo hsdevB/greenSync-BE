@@ -1,7 +1,8 @@
 import modelsIndex from '../models/index.js';
 import logger from '../utils/logger.js';
-const {db} = modelsIndex;
-const { Farm } = db;
+// const {db} = modelsIndex;
+// const { Farm } = db;
+import Farm from '../models/farm.js';
 
 class FarmDao {
   static async insert(params) {
