@@ -1,4 +1,4 @@
-import { sequelize } from './connection.js';
+import sequelize from './connection.js';
 import User from './user.js';
 import CarbonDioxide from './carbonDioxide.js';
 import Farm from './farm.js';
