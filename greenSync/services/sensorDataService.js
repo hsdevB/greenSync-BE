@@ -28,6 +28,14 @@ const sensorDataService = {
     if (co2 !== undefined) {
       await carbonDioxideDao.saveCarbonDioxide(co2, farmCode);
     }
+  },
+
+  getTemperatureByFarmId: async (farmId) => {
+    return await temperatureDao.getTemperatureByFarmId(farmId);
+  },
+
+  getTemperatureByFarmCode: async (farmCode) => {
+    return await temperatureDao.getTemperatureByFarmCode(farmCode);
   }
 };
 
