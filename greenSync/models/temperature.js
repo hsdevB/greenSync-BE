@@ -6,8 +6,7 @@ class Temperature extends Model {
             {
                 temperature: {
                     type: DataTypes.FLOAT,
-                    allowNull: false,
-                    
+                    allowNull: false, 
                     comment: '온도'
                 },
             },
@@ -21,7 +20,7 @@ class Temperature extends Model {
     static associate(db) {
         db.Temperature.belongsTo(db.Farm, { 
             foreignKey: 'farmId',  
-            targetKey: 'farmCode',
+            targetKey: 'id',
             as: 'farm' 
         });
     }

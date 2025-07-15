@@ -45,7 +45,7 @@ class Weather extends Model {
     static associate(db) {
         db.Weather.belongsTo(db.Farm, { 
             foreignKey: 'farmId',  
-            targetKey: 'farmCode',
+            targetKey: 'id',
             as: 'farm' 
         });
     }

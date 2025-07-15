@@ -30,7 +30,7 @@ class Optimization extends Model {
     static associate(db) {
         db.Optimization.belongsTo(db.Farm, { 
             foreignKey: 'farmId',  
-            targetKey: 'farmCode',
+            targetKey: 'id',
             as: 'farm' 
         });
     }

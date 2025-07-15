@@ -50,7 +50,7 @@ class User extends Model {
         // 유저와 농장의 관계
         db.User.belongsTo(db.Farm, { 
             foreignKey: 'farmId', 
-            targetKey: 'farmCode',
+            targetKey: 'id',
             as: 'farm' 
         });
     }
