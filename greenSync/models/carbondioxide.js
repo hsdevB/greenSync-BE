@@ -20,7 +20,7 @@ class CarbonDioxide extends Model {
     static associate(db) {
         db.CarbonDioxide.belongsTo(db.Farm, { 
             foreignKey: 'farmId',   
-            targetKey: 'farmCode',
+            targetKey: 'id',
             as: 'farm' 
         });
     }

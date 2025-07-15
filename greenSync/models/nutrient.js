@@ -25,7 +25,7 @@ class Nutrient extends Model {
     static associate(db) {
         db.Nutrient.belongsTo(db.Farm, { 
             foreignKey: 'farmId',   
-            targetKey: 'farmCode',
+            targetKey: 'id',
             as: 'farm' 
         });
     }
