@@ -4,12 +4,14 @@ import loginRouter from './login.js';
 import authRouter from './auth.js';     
 import farmRouter from './farm.js';     
 import signupRouter from './signup.js'; 
+// import weatherRouter from './weather.js';
 
-const apirouter = express.Router();
+const router = express.Router();
 
-apirouter.use('/login', loginRouter);
-apirouter.use('/auth', authRouter);
-apirouter.use('/farm', farmRouter);
-apirouter.use('/signup', signupRouter);
+router.use('/login', loginRouter);
+router.use('/auth', authRouter);
+router.use('/farm', farmRouter);
+router.use('/signup', signupRouter);
+// router.use('/weather', weatherRouter);
 
-export default apirouter;
+export default router;

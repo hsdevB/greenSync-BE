@@ -1,13 +1,14 @@
 import modelsIndex from '../models/index.js';
 import logger from '../utils/logger.js';
-const {db} = modelsIndex;
-const { Farm } = db;
+// const {db} = modelsIndex;
+// const { Farm } = db;
+import Farm from '../models/farm.js';
 
 class FarmDao {
   static async insert(params) {
     try {
       const inserted = await Farm.create(params);
-      return { insertedId: inserted.id, farmCode: inserted.farmCode };
+      return { farmId: inserted.id, farmCode: inserted.farmCode };
     } catch (err) {
       logger.error(`farmDao.insert error: ${err.message}`);
       throw err;

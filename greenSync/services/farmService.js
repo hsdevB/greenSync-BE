@@ -1,5 +1,5 @@
 import FarmDao from '../dao/farmDao.js';
-import FarmCodeGenerator from '../utils/farmCode.js';
+import FarmCode from '../utils/farmCode.js';
 import logger from '../utils/logger.js';
 
 class FarmService {
@@ -12,7 +12,7 @@ class FarmService {
 
       // 중복되지 않는 팜코드 생성
       while (!isUnique && attempts < maxAttempts) {
-        farmCode = FarmCodeGenerator.farmCode();
+        farmCode = FarmCode.createFarmCode();
         const exists = await FarmDao.checkFarmCodeExists(farmCode);
         
         if (!exists) {
@@ -28,16 +28,16 @@ class FarmService {
       // 생성된 팜코드로 농장 정보 저장
       const farmData = {
         farmCode,
-        description: `자동 생성된 농장 (코드: ${farmCode})`,
-        isActive: true
+        farmType: null,
+        houseType: null,
       };
 
       const result = await FarmDao.insert(farmData);
       
       logger.info(`farmService.generateFarmCode.response result: ${JSON.stringify(result)}`);
       return {
-        farmId: result.insertedId,
-        farmCode: farmCode,
+        farmId: result.farmId,
+        farmCode: result.farmCode,
       };
       
     } catch (err) {
@@ -48,7 +48,7 @@ class FarmService {
 
   static async getFarmByCode(farmCode) {
     try {
-      if (!FarmCodeGenerator.validateFarmCode(farmCode)) {
+      if (!FarmCode.validateFarmCode(farmCode)) {
         throw new Error('유효하지 않은 팜코드 형식입니다.');
       }
 

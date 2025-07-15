@@ -13,11 +13,10 @@ static async login(params) {
       if (!userInfo) {
         throw new Error(`${params.userId} 계정정보가 존재하지 않습니다.`);
       }
-      logger.debug(`loginService.login.retrievedPasswordHash: ${userInfo.password}`);
       // 2. 비밀번호 검증
-      const checkPassword = await HashUtil.checkPasswordHash(params.password, userInfo.password);
+      const isValidPassword = await HashUtil.checkPasswordHash(params.password, userInfo.password);
 
-      if (!checkPassword) {
+      if (!isValidPassword) {
         throw new Error('입력하신 비밀번호가 일치하지 않습니다.');
       }
 

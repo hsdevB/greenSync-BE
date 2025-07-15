@@ -1,9 +1,11 @@
 import { Op } from 'sequelize';
-import modelsIndex from '../models/index.js';
+// import modelsIndex from '../models/index.js';
 import { getOrderBy } from '../utils/sequelizeUtil.js';
 import logger from '../utils/logger.js';
-const {db} = modelsIndex;
-const { User, Farm } = db;
+// const {db} = modelsIndex;
+// const { User, Farm } = db;
+import User from '../models/user.js';
+import Farm from '../models/farm.js';
 
 class UserDao {
   static async insert(params) {

@@ -1,4 +1,4 @@
-import { sequelize } from './connection.js';
+import sequelize from './connection.js';
 import User from './user.js';
 import CarbonDioxide from './carbonDioxide.js';
 import Farm from './farm.js';
@@ -38,15 +38,5 @@ Object.keys(db).forEach(modelName => {
     db[modelName].associate(db);
   }
 });
-export{
-  sequelize,
-  db,
-  User,
-  Farm,
-}
-export default {
-    sequelize,
-    db,
-    User,
-    Farm,
-  };
+
+export default db;

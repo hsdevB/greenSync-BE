@@ -2,9 +2,9 @@ import express from 'express';
 import Middleware from '../utils/middleware.js';
 import logger from '../utils/logger.js';
 
-const apiRouter = express.Router();
+const authRouter = express.Router();
 
-apiRouter.get('/me', Middleware.isLoggedIn, (req, res) => {
+authRouter.get('/me', Middleware.isLoggedIn, (req, res) => {
     try {
       const userPayload = req.loginUser;
   
@@ -32,4 +32,4 @@ apiRouter.get('/me', Middleware.isLoggedIn, (req, res) => {
       });
     }
   });
-  export default apiRouter;
+  export default authRouter;

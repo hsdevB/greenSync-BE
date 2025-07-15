@@ -7,10 +7,8 @@ class Humidity extends Model {
                 humidity: {
                     type: DataTypes.FLOAT,
                     allowNull: false,
-                    
                     comment: '습도'
                 },
-                
             },
             {
                 sequelize,
@@ -22,7 +20,7 @@ class Humidity extends Model {
     static associate(db) {
         db.Humidity.belongsTo(db.Farm, { 
             foreignKey: 'farmId',  
-            targetKey: 'farmCode',
+            targetKey: 'id',
             as: 'farm' 
         });
     }
