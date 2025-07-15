@@ -1,6 +1,5 @@
 import dotenv from 'dotenv';
-import { Sequelize } from 'sequelize';
-import logger from '../utils/logger.js';
+import Sequelize from 'sequelize';
 
 dotenv.config();
 
@@ -16,4 +15,4 @@ const sequelize = new Sequelize(
   }
 );
 
-export { sequelize }; 
+export default sequelize; 
