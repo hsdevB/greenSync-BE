@@ -12,6 +12,27 @@ const carbonDioxideDao = {
         co2,
         farmId: farm.id
     });
+  },
+
+  getCarbonDioxideByFarmId: async (farmId) => {
+    return await CarbonDioxide.findAll({ 
+      where: { farmId },
+      order: [['createdAt', 'DESC']],
+      limit: 15
+    });
+  },
+
+  getCarbonDioxideByFarmCode: async (farmCode) => {
+    const farm = await Farm.findOne({ where: { farmCode } });
+    if (!farm) {
+      throw new Error(`Farm with code ${farmCode} not found.`);
+    }
+
+    return await CarbonDioxide.findAll({ 
+      where: { farmId: farm.id },
+      order: [['createdAt', 'DESC']],
+      limit: 15
+    });
   }
 };
 
