@@ -36,6 +36,30 @@ const sensorDataService = {
 
   getTemperatureByFarmCode: async (farmCode) => {
     return await temperatureDao.getTemperatureByFarmCode(farmCode);
+  },
+
+  getHumidityByFarmId: async (farmId) => {
+    return await humidityDao.getHumidityByFarmId(farmId);
+  },
+
+  getHumidityByFarmCode: async (farmCode) => {
+    return await humidityDao.getHumidityByFarmCode(farmCode);
+  },
+
+  getCarbonDioxideByFarmId: async (farmId) => {
+    return await carbonDioxideDao.getCarbonDioxideByFarmId(farmId);
+  },
+
+  getCarbonDioxideByFarmCode: async (farmCode) => {
+    return await carbonDioxideDao.getCarbonDioxideByFarmCode(farmCode);
+  },
+
+  getNutrientByFarmId: async (farmId) => {
+    return await nutrientDao.getNutrientByFarmId(farmId);
+  },
+
+  getNutrientByFarmCode: async (farmCode) => {
+    return await nutrientDao.getNutrientByFarmCode(farmCode);
   }
 };
 
