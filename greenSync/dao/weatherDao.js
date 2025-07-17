@@ -52,7 +52,7 @@ class WeatherDao {
             // DB에 저장
             const inserted = await Weather.create(cleanData);
             
-            logger.info(`✅ 날씨 데이터 저장 성공: ${cityName} (${cleanData.observationTime})`);
+            logger.info(`✅ 서울 날씨 데이터 저장 성공:(${cleanData.observationTime})`);
             return { 
                 success: true, 
                 insertedId: inserted.id, 

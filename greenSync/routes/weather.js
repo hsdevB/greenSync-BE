@@ -1,22 +1,20 @@
-// weather.js
 import express from 'express';
 import WeatherService from '../services/weatherService.js';
 import WeatherDao from '../dao/weatherDao.js';
 import logger from '../utils/logger.js';
-import Middleware from '../utils/middleware.js'; // Middleware 임포트
+// import Middleware from '../utils/middleware.js'; // 제거!
 
 const weatherRouter = express.Router();
 
-// 1️⃣ 도시별 OpenWeatherMap 원본 데이터 조회 (인증 불필요, DB 저장 없음)
+// 1️⃣ 도시별 OpenWeatherMap 원본 데이터 조회 (기존과 동일)
 weatherRouter.get('/city/:cityName', async (req, res) => {
   try {
     const { cityName } = req.params;
     
     const result = await WeatherService.getCityWeatherData(cityName);
     
-    // 응답 데이터에서 humidity 및 stationNumber 제거 (서비스에서 이미 처리됨)
     const { data, ...restResult } = result;
-    const { main, sys, ...restData } = data.data; // OpenWeatherMap 원본 데이터 구조에 따라 조절
+    const { main, sys, ...restData } = data.data;
     
     res.status(200).json({
       success: true,
@@ -25,8 +23,6 @@ weatherRouter.get('/city/:cityName', async (req, res) => {
         ...restResult,
         data: {
           ...restData,
-          // humidity: main?.humidity, // 제거
-          // stationNumber: result.stationNumber // 제거
         }
       }
     });
@@ -41,32 +37,37 @@ weatherRouter.get('/city/:cityName', async (req, res) => {
   }
 });
 
-// 2️⃣ 테이블 매칭 형식으로 변환된 데이터 조회 (전체 도시) - 인증 필요
-weatherRouter.get('/mapped', Middleware.isLoggedIn, async (req, res) => { // Middleware.isLoggedIn 추가
+// 2️⃣ 서울 날씨 데이터 조회 및 저장 (로그인 검증 제거, 서울 고정)
+weatherRouter.get('/mapped', async (req, res) => { // Middleware.isLoggedIn 제거!
   try {
-    const farmId = req.loginUser.farmId; // 로그인한 사용자의 farmId 추출
+    // farmId를 쿼리에서 받거나 기본값 사용
+    const farmId = req.query.farmId || 1;
+    
+    console.log(`🌤️ 서울 날씨 데이터 조회 시작 (farmId: ${farmId})`);
 
-    const result = await WeatherService.getMappedWeatherData(null, farmId); // farmId 전달
+    // 서울만 조회하도록 수정
+    const result = await WeatherService.getMappedWeatherData('서울', farmId);
     
     // DB에 데이터 저장
-    if (result.success && Array.isArray(result.data) && result.data.length > 0) {
-      for (const weatherData of result.data) {
-        // DB 저장 시 'cityName' 필드는 제거하고, isDay와 isRain은 Boolean 값으로 변환
-        const { cityName, ...dataToSave } = weatherData; // cityName은 응답용, DB 저장에는 불필요
-        await WeatherDao.saveWeatherData({
-          ...dataToSave,
-          isDay: dataToSave.isDay,
-          isRain: dataToSave.isRain,
-          farmId: farmId // DAO에 farmId 명시적으로 전달
-        }); 
-      }
+    if (result.success && result.data) {
+      console.log('📊 서울 날씨 데이터 DB 저장 중...');
+      
+      // 단일 객체일 경우 (서울 하나만)
+      const { cityName, ...dataToSave } = result.data;
+      await WeatherDao.saveWeatherData({
+        ...dataToSave,
+        isDay: dataToSave.isDay,
+        isRain: dataToSave.isRain,
+        farmId: farmId
+      });
+      
+      console.log(`✅ 서울 날씨 데이터 저장 완료: 온도 ${dataToSave.outsideTemp}°C`);
     }
 
     res.status(200).json({
       success: true,
-      message: '전체 도시 테이블 매칭 데이터 조회 성공',
-      data: result.data, 
-      fieldMapping: result.fieldMapping,
+      message: '서울 날씨 데이터 조회 및 저장 성공',
+      data: result.data,
       requestTime: result.requestTime
     });
     
@@ -79,31 +80,35 @@ weatherRouter.get('/mapped', Middleware.isLoggedIn, async (req, res) => { // Mid
   }
 });
 
-// 3️⃣ 특정 도시의 테이블 매칭 형식 데이터 조회 - 인증 필요
-weatherRouter.get('/mapped/:cityName', Middleware.isLoggedIn, async (req, res) => { // Middleware.isLoggedIn 추가
+// 3️⃣ 특정 도시의 테이블 매칭 형식 데이터 조회 (로그인 검증 제거)
+weatherRouter.get('/mapped/:cityName', async (req, res) => { // Middleware.isLoggedIn 제거!
   try {
     const { cityName } = req.params;
-    const farmId = req.loginUser.farmId; // 로그인한 사용자의 farmId 추출
+    const farmId = req.query.farmId || 1; // 쿼리에서 farmId 받기
     
-    const result = await WeatherService.getMappedWeatherData(cityName, farmId); // farmId 전달
+    console.log(`🌤️ ${cityName} 날씨 데이터 조회 시작 (farmId: ${farmId})`);
+    
+    const result = await WeatherService.getMappedWeatherData(cityName, farmId);
 
     // DB에 데이터 저장
-    if (result.success && result.data) { // 단일 객체일 경우
-      // DB 저장 시 'cityName' 필드는 제거하고, isDay와 isRain은 Boolean 값으로 변환
-      const { cityName: responseCityName, ...dataToSave } = result.data; // cityName은 응답용, DB 저장에는 불필요
+    if (result.success && result.data) {
+      console.log(`📊 ${cityName} 날씨 데이터 DB 저장 중...`);
+      
+      const { cityName: responseCityName, ...dataToSave } = result.data;
       await WeatherDao.saveWeatherData({
         ...dataToSave,
         isDay: dataToSave.isDay,
         isRain: dataToSave.isRain,
-        farmId: farmId // DAO에 farmId 명시적으로 전달
+        farmId: farmId
       });
+      
+      console.log(`✅ ${cityName} 날씨 데이터 저장 완료: 온도 ${dataToSave.outsideTemp}°C`);
     }
     
     res.status(200).json({
       success: true,
       message: `${cityName} 테이블 매칭 데이터 조회 성공`,
-      data: result.data, 
-      fieldMapping: result.fieldMapping,
+      data: result.data,
       requestTime: result.requestTime
     });
     
@@ -113,6 +118,46 @@ weatherRouter.get('/mapped/:cityName', Middleware.isLoggedIn, async (req, res) =
       success: false,
       message: err.message,
       supportedCities: Object.keys(WeatherService.getKoreaCities())
+    });
+  }
+});
+
+// 4️⃣ cron 자동 수집용 API (서울 전용으로 수정)
+weatherRouter.get('/auto-collect', async (req, res) => {
+  try {
+    const farmId = req.query.farmId || 1;
+    
+    console.log(`🤖 자동 수집: 서울 날씨 데이터 조회 시작 (farmId: ${farmId})`);
+    
+    // 서울만 조회하도록 수정
+    const result = await WeatherService.getMappedWeatherData('서울', farmId);
+    
+    // DB에 데이터 저장
+    if (result.success && result.data) {
+      console.log('📊 자동 수집: 서울 날씨 데이터 DB 저장 중...');
+      
+      const { cityName, ...dataToSave } = result.data;
+      await WeatherDao.saveWeatherData({
+        ...dataToSave,
+        isDay: dataToSave.isDay,
+        isRain: dataToSave.isRain,
+        farmId: farmId
+      });
+      
+      console.log(`✅ 자동 수집: 서울 날씨 저장 완료 - 온도: ${dataToSave.outsideTemp}°C, 일사량: ${dataToSave.insolation}`);
+    }
+
+    res.json({ 
+      success: true, 
+      message: '서울 날씨 자동 수집 완료', 
+      data: result.data,
+      timestamp: new Date().toLocaleString('ko-KR')
+    });
+  } catch (err) {
+    console.log(`❌ 자동 수집 실패: ${err.message}`);
+    res.status(500).json({ 
+      success: false, 
+      message: err.message 
     });
   }
 });

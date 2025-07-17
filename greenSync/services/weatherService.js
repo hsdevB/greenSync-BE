@@ -198,7 +198,7 @@ class WeatherService {
           }
 
           // DB에 저장될 데이터 (cityName 제거)
-          const dbData = await this.convertToTableFormat(weatherData, city, coords, apiType, farmId); // farmId 전달
+          const dbData = await this.convertToTableFormat(weatherData, city, coords, apiType); 
           
           // 여기에 dbData를 저장하는 로직이 있다고 가정합니다.
           // 예: await Weather.create(dbData); 
@@ -240,7 +240,7 @@ class WeatherService {
   }
 
   // 🔄 OpenWeatherMap 데이터를 테이블 형식으로 변환 및 일사량 추가
-  static async convertToTableFormat(weatherData, cityName, coords, apiType, farmId = null) { // farmId 파라미터 추가
+  static async convertToTableFormat(weatherData, cityName, coords, apiType) { 
     try {
       const isOneCall = apiType === 'ONE_CALL_3';
       const current = isOneCall ? weatherData.current : weatherData;
@@ -275,21 +275,17 @@ class WeatherService {
 
       return {
         observationTime: observationTime,                    
-        // stationNumber: coords.stationNumber,                 // 제거
         windDirection: current.wind_deg || weatherData.wind?.deg || null,  
         windSpeed: current.wind_speed || weatherData.wind?.speed || null,   
         outsideTemp: Math.round(current.temp || weatherData.main?.temp),    
-        // humidity: current.humidity || weatherData.main?.humidity,           // 제거
         isRain: isRainValue === 1, // boolean으로 변환              
         isDay: isDayValue === 'D', // boolean으로 변환                                        
         insolation: insolation,                               
-        farmId: farmId // farmId 추가
       };
 
     } catch (err) {
       logger.error(`convertToTableFormat.error: ${err.message}`);
       return {
-        // stationNumber: coords.stationNumber, // 제거
         error: `데이터 변환 실패: ${err.message}`
       };
     }
