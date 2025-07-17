@@ -30,6 +30,11 @@ class Weather extends Model {
                     defaultValue: 0.0,
                     comment: '일사량'
                 },
+                dewPoint: {
+                    type: DataTypes.FLOAT,
+                    allowNull: true,
+                    comment: '이슬점 온도'
+                },
                 isDay: {
                     type: DataTypes.BOOLEAN,
                     allowNull: false,
