@@ -51,6 +51,7 @@ class WeatherCron {
         console.log(`   🌧️ 강수: ${data.isRain ? '예' : '아니오'}`);
         console.log(`   🌅 낮/밤: ${data.isDay ? '낮' : '밤'}`);
         console.log(`   💨 풍속: ${data.windSpeed || 'N/A'}m/s`);
+        console.log(`   💨 이슬점 온도: ${data.dewPoint || 'N/A'}°C`);
       } else {
         console.log(`❌ 실패: ${response.data.message}`);
       }

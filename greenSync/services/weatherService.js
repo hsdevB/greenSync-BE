@@ -277,7 +277,8 @@ class WeatherService {
         observationTime: observationTime,                    
         windDirection: current.wind_deg || weatherData.wind?.deg || null,  
         windSpeed: current.wind_speed || weatherData.wind?.speed || null,   
-        outsideTemp: Math.round(current.temp || weatherData.main?.temp),    
+        outsideTemp: Math.round(current.temp || weatherData.main?.temp), 
+        dewPoint: current.dew_point || weatherData.main?.dew_point || null,
         isRain: isRainValue === 1, // boolean으로 변환              
         isDay: isDayValue === 'D', // boolean으로 변환                                        
         insolation: insolation,                               
