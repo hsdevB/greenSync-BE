@@ -19,11 +19,11 @@ class UserService {
       }
       const passwordHash = await HashUtil.makePasswordHash(params.password);
       const finalPassword = passwordHash.hash;
-      // 3. 사용자 정보 저장 
+      // 3. 사용자 정보 저장
       const userData = {
-        farmId: params.farmCode, 
+        farmId: farm.id, // <-- 이 부분을 수정: farm 객체에서 실제 정수형 ID를 사용
         userId: params.userId,
-        password: finalPassword, 
+        password: finalPassword,
         name: params.name,
         email: params.email || null,
         phoneNumber: params.phoneNumber || null,
@@ -36,10 +36,10 @@ class UserService {
         success: true,
         message: '회원가입이 성공적으로 완료되었습니다.',
         data: {
-          id: result.insertedId, 
-          userId: params.userId, 
+          id: result.insertedId,
+          userId: params.userId,
           name: params.name,
-          farmId: params.farmCode, 
+          farmId: farm.id, // <-- 응답 데이터에도 정수형 ID를 사용
         }
       };
 
@@ -86,17 +86,6 @@ class UserService {
       throw err;
     }
   }
-
-//   static async delete(params) {
-//     try {
-//       const result = await UserDao.delete(params);
-//       logger.debug('userService.delete', params, result);
-//       return result;
-//     } catch (err) {
-//       logger.error(`userService.delete error: ${err.message}`);
-//       throw err;
-//     }
-//   }
 }
 
 export default UserService;

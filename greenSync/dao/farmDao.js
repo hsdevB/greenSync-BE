@@ -14,6 +14,9 @@ class FarmDao {
 
   static async selectByFarmCode(farmCode) {
     try {
+      if (!farmCode) {
+        throw new Error('farmCode(팜코드)는 필수값입니다.');
+      }
       const result = await Farm.findOne({
         where: { farmCode }
       });
