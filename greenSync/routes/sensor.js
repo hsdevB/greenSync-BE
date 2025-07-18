@@ -4,7 +4,6 @@ import logger from '../utils/logger.js';
 
 const sensorRouter = express.Router();
 
-// 온도 데이터 조회 (농장ID)
 sensorRouter.get('/temperature/:farmId', async (req, res) => {
   try {
     const { farmId } = req.params;
@@ -17,7 +16,6 @@ sensorRouter.get('/temperature/:farmId', async (req, res) => {
   }
 });
 
-// 온도 데이터 조회 (농장코드)
 sensorRouter.get('/temperature/code/:farmCode', async (req, res) => {
   try {
     const { farmCode } = req.params;
@@ -30,7 +28,6 @@ sensorRouter.get('/temperature/code/:farmCode', async (req, res) => {
   }
 });
 
-// 습도 데이터 조회 (농장ID)
 sensorRouter.get('/humidity/:farmId', async (req, res) => {
   try {
     const { farmId } = req.params;
@@ -43,7 +40,6 @@ sensorRouter.get('/humidity/:farmId', async (req, res) => {
   }
 });
 
-// 습도 데이터 조회 (농장코드)
 sensorRouter.get('/humidity/code/:farmCode', async (req, res) => {
   try {
     const { farmCode } = req.params;
@@ -56,7 +52,6 @@ sensorRouter.get('/humidity/code/:farmCode', async (req, res) => {
   }
 });
 
-// 이산화탄소 데이터 조회 (농장ID)
 sensorRouter.get('/carbonDioxide/:farmId', async (req, res) => {
   try {
     const { farmId } = req.params;
@@ -69,7 +64,6 @@ sensorRouter.get('/carbonDioxide/:farmId', async (req, res) => {
   }
 });
 
-// 이산화탄소 데이터 조회 (농장코드)
 sensorRouter.get('/carbonDioxide/code/:farmCode', async (req, res) => {
   try {
     const { farmCode } = req.params;
@@ -82,7 +76,6 @@ sensorRouter.get('/carbonDioxide/code/:farmCode', async (req, res) => {
   }
 });
 
-// 양액 데이터 조회 (농장ID)
 sensorRouter.get('/nutrient/:farmId', async (req, res) => {
   try {
     const { farmId } = req.params;
@@ -95,7 +88,6 @@ sensorRouter.get('/nutrient/:farmId', async (req, res) => {
   }
 });
 
-// 양액 데이터 조회 (농장코드)
 sensorRouter.get('/nutrient/code/:farmCode', async (req, res) => {
   try {
     const { farmCode } = req.params;

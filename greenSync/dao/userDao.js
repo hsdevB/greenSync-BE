@@ -19,7 +19,6 @@ class UserDao {
     try {
       const setQuery = {};
       
-      // 검색 조건 설정
       if (params.userId) {
         setQuery.where = {
           ...setQuery.where,
@@ -48,7 +47,6 @@ class UserDao {
         };
       }
 
-      // 날짜 범위 검색
       if (params.createdAtFrom || params.createdAtTo) {
         if (params.createdAtFrom && params.createdAtTo) {
           setQuery.where = {
@@ -68,7 +66,6 @@ class UserDao {
         }
       }
 
-      // 페이징
       if (params.limit && params.limit > 0) {
         setQuery.limit = parseInt(params.limit);
       }
@@ -77,7 +74,6 @@ class UserDao {
         setQuery.offset = parseInt(params.offset);
       }
 
-      // 정렬
       setQuery.order = getOrderBy(params.orderby);
 
       const result = await User.findAndCountAll({
@@ -175,6 +171,6 @@ class UserDao {
       throw err;
     }
   }
-}
+};
 
 export default UserDao;

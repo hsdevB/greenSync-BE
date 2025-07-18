@@ -1,8 +1,8 @@
 import Temperature from '../models/temperature.js';
 import Farm from '../models/farm.js';
 
-const temperatureDao = {
-  saveTemperature: async (temperature, farmCode) => {
+class TemperatureDao {
+  static async saveTemperature(temperature, farmCode) {
     const farm = await Farm.findOne({ where: { farmCode } });
     if (!farm) {
       throw new Error(`Farm with code ${farmCode} not found.`);
@@ -12,16 +12,16 @@ const temperatureDao = {
       temperature,
       farmId: farm.id
     });
-  },
+  }
 
-  getTemperatureByFarmId: async (farmId) => {
+  static async getTemperatureByFarmId(farmId) {
     return await Temperature.findOne({ 
       where: { farmId },
       order: [['createdAt', 'DESC']]
     });
-  },
+  }
 
-  getTemperatureByFarmCode: async (farmCode) => {
+  static async getTemperatureByFarmCode(farmCode) {
     const farm = await Farm.findOne({ where: { farmCode } });
     if (!farm) {
       throw new Error(`Farm with code ${farmCode} not found.`);
@@ -32,6 +32,6 @@ const temperatureDao = {
       order: [['createdAt', 'DESC']]
     });
   }
-};
+}
 
-export default temperatureDao;
+export default TemperatureDao;
