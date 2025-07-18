@@ -140,5 +140,6 @@ vite.config.js.timestamp-*
 vite.config.ts.timestamp-*
 
 # greenSync Bruno
-greenSync/
+*.bru
+bruno*
 

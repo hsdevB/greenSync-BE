@@ -47,7 +47,6 @@ class User extends Model {
         );
     }
     static associate(db) {
-        // 유저와 농장의 관계
         db.User.belongsTo(db.Farm, { 
             foreignKey: 'farmId', 
             targetKey: 'id',
