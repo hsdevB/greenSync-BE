@@ -2,12 +2,17 @@ import express from 'express';
 import dotenv from 'dotenv';
 import models from './models/index.js';
 import logger from './utils/logger.js';
+import mqttClient from './mqtt/mqttClient.js';
+import WeatherCron from './utils/WeatherCron.js';
+
+
 
 // Routes
 import Router from './routes/index.js';
 
 dotenv.config();
 
+const weatherCron = new WeatherCron();
 const app = express();
 const PORT = process.env.PORT || 3000;
 
@@ -89,6 +94,7 @@ models.sequelize.authenticate()
   .then(() => {
     app.listen(PORT, () => {
       logger.info(`🚀 GreenSync API Server started on port ${PORT}`);  
+      setTimeout(() => weatherCron.start(), 2000); // 자동 시작!
     });
   })
   .catch((err) => {

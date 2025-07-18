@@ -53,17 +53,11 @@ class HashUtil {
       // 따라서, 모든 비밀번호는 전체 bcrypt 해시 형태로 저장되어야 하며,
       // 레거시 형식은 이 함수에서 직접 처리하지 않고, 필요하다면 데이터 마이그레이션을 권장합니다.
       const result = await bcrypt.compare(password, encryptedPassword);
-      
-      // bcrypt 해시에서 salt 부분 추출해서 로깅 (참고용, 실제 검증에 사용되지 않음)
-      const saltFromHash = encryptedPassword.substring(0, 29); // bcrypt salt는 보통 29자
-      logger.info(`hashUtil.checkPasswordHash.info: extracted salt=${saltFromHash}`);
-      logger.info(`hashUtil.checkPasswordHash.success: password check completed, match=${result}`);
-      
       return result;
       
     } catch (err) {
       logger.error(`hashUtil.checkPasswordHash.error: ${err.message}`);
-      throw err; // HTTP 응답 처리는 서비스 또는 라우트 계층에서 담당
+      throw err; 
     }
   }
 

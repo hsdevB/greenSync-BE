@@ -8,7 +8,6 @@ class Farm extends Model {
                     type: DataTypes.STRING(10),
                     allowNull: false,
                     comment: '농장코드',
-                    // unique: true
                 },
                 farmType: {
                     type: DataTypes.STRING(20),
@@ -30,13 +29,11 @@ class Farm extends Model {
         );
     }
     static associate(db) {
-        // 농장과 유저와의 관계
         db.Farm.hasMany(db.User, { 
             foreignKey: 'farmId', 
             sourceKey: 'id',
             as: 'users'  
         });
-        // 농장과 센서 데이터들과의 관계
         db.Farm.hasMany(db.Humidity, {
             foreignKey: 'farmId',
             sourceKey: 'id',

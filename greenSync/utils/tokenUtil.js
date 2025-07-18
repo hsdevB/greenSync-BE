@@ -1,4 +1,5 @@
 import jwt from 'jsonwebtoken';
+import logger from '../utils/logger.js';
 
 const secretKey = process.env.JWT_SECRET || 'your-default-strong-secret-key-if-env-fails'; // .env의 JWT_SECRET 사용
 
@@ -8,14 +9,18 @@ const options = {
 
 class TokenUtil {
   static makeToken(user) {
+    try {
     const payload = {
       userId: user.userId,
       name: user.name,
-      farmId: user.farmId,
     };
-
     const token = jwt.sign(payload, secretKey, options);
+    logger.info(`tokenUtil.makeToken.success: token=${token}`);
     return token;
+    } catch (err) {
+      logger.error(`tokenUtil.makeToken.error: ${err.message}`);
+      throw err;
+    }
   }
 
   static verifyToken(token) {

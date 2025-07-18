@@ -1,0 +1,15 @@
+meta {
+  name: openweatherAPI(파싱)
+  type: http
+  seq: 9
+}
+
+get {
+  url: http://localhost:3000/weather/mapped/서울
+  body: json
+  auth: inherit
+}
+
+headers {
+  token: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiJ0ZXN0IiwibmFtZSI6Iuq0gOumrOyekCIsImZhcm1JZCI6MSwiaWF0IjoxNzUyNjU1ODc5LCJleHAiOjE3NTI2NjMwNzl9.SNKlM4qwduWMpm1LtS8AyJSPLYETmM2L-iFQUBBzmoQ
+}
