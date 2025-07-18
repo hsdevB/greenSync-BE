@@ -1,8 +1,8 @@
 import Nutrient from '../models/nutrient.js';
 import Farm from '../models/farm.js';
 
-const nutrientDao = {
-  saveNutrient: async (phLevel, elcDT, farmCode) => {
+class NutrientDao {
+  static async saveNutrient(phLevel, elcDT, farmCode) {
     const farm = await Farm.findOne({ where: { farmCode } });
     if (!farm) {
       throw new Error(`Farm with code ${farmCode} not found.`);
@@ -12,17 +12,17 @@ const nutrientDao = {
         elcDT,
         farmId: farm.id
     });
-  },
+  }
 
-  getNutrientByFarmId: async (farmId) => {
+  static async getNutrientByFarmId(farmId) {
     return await Nutrient.findAll({ 
       where: { farmId },
       order: [['createdAt', 'DESC']],
       limit: 15
     });
-  },
+  }
 
-  getNutrientByFarmCode: async (farmCode) => {
+  static async getNutrientByFarmCode(farmCode) {
     const farm = await Farm.findOne({ where: { farmCode } });
     if (!farm) {
       throw new Error(`Farm with code ${farmCode} not found.`);
@@ -32,7 +32,7 @@ const nutrientDao = {
       order: [['createdAt', 'DESC']],
       limit: 15
     });
-  },
+  }
 };
 
-export default nutrientDao;
+export default NutrientDao;

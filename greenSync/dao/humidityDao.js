@@ -1,8 +1,8 @@
 import Humidity from '../models/humidity.js';
 import Farm from '../models/farm.js';
 
-const humidityDao = {
-  saveHumidity: async (humidity, farmCode) => {
+class HumidityDao {
+  static async saveHumidity(humidity, farmCode) {
     const farm = await Farm.findOne({ where: { farmCode } });
     if (!farm) {
       throw new Error(`Farm with code ${farmCode} not found.`);
@@ -12,17 +12,17 @@ const humidityDao = {
         humidity,
         farmId: farm.id
     });
-  },
+  }
 
-  getHumidityByFarmId: async (farmId) => {
+  static async getHumidityByFarmId(farmId) {
     return await Humidity.findAll({ 
       where: { farmId },
       order: [['createdAt', 'DESC']],
       limit: 15
     });
-  },
+  }
 
-  getHumidityByFarmCode: async (farmCode) => {
+  static async getHumidityByFarmCode(farmCode) {
     const farm = await Farm.findOne({ where: { farmCode } });
     if (!farm) {
       throw new Error(`Farm with code ${farmCode} not found.`);
@@ -33,6 +33,6 @@ const humidityDao = {
       limit: 15
     });
   }
-};
+}
 
-export default humidityDao;
+export default HumidityDao;
