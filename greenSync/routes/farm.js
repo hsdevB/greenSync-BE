@@ -7,22 +7,20 @@ const farmRouter = express.Router();
 // 팜코드 생성 및 발급
 farmRouter.get('/farmcode', async (req, res) => {
   try {
-    logger.info('팜코드 생성 요청');
-    
     const result = await FarmService.generateFarmCode();
     
-    logger.info(`farmRouter.farmcode.response result: ${JSON.stringify(result)}`);
+    logger.info(`farmRouter.farmcode: 농장코드 생성 완료 - 농장ID: ${result.farmId}, 농장코드: ${result.farmCode}`);
     res.status(200).json({
       success: true,
-      message: '팜코드가 성공적으로 생성되었습니다.',
+      message: '농장코드가 성공적으로 생성되었습니다.',
       data: result
     });
     
   } catch (err) {
-    logger.error(`farmRouter.farmcode.error: ${err.message}`);
+    logger.error(`farmRouter.farmcode: 농장코드 생성 실패 - 에러: ${err.message}`);
     res.status(500).json({
       success: false,
-      message: err.message
+      message: err.message || '농장코드 생성 중 오류가 발생했습니다.'
     });
   }
 });
