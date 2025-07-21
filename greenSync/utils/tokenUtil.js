@@ -28,7 +28,7 @@ class TokenUtil {
       const decoded = jwt.verify(token, secretKey);
       return decoded;
     } catch (err) {
-      console.error('tokenUtil.verifyToken.error:', err.name, err.message);
+      logger.error(`tokenUtil.verifyToken.error: ${err.message}`);
       return null;
     }
   }

@@ -57,10 +57,9 @@ class HumidityDao {
         throw new Error('농장ID는 유효한 양수여야 합니다.');
       }
 
-      const result = await Humidity.findAll({ 
+      const result = await Humidity.findOne({ 
         where: { farmId },
         order: [['createdAt', 'DESC']],
-        limit: 15
       });
       
       logger.info(`HumidityDao.getHumidityByFarmId: 습도 데이터 조회 완료 - 농장ID: ${farmId}, 조회된 레코드 수: ${result.length}`);
@@ -88,10 +87,9 @@ class HumidityDao {
         throw new Error(`농장코드 ${farmCode}에 해당하는 농장을 찾을 수 없습니다.`);
       }
 
-      const result = await Humidity.findAll({ 
+      const result = await Humidity.findOne({ 
         where: { farmId: farm.id },
         order: [['createdAt', 'DESC']],
-        limit: 15
       });
       
       logger.info(`HumidityDao.getHumidityByFarmCode: 습도 데이터 조회 완료 - 농장코드: ${farmCode}, 조회된 레코드 수: ${result.length}`);
