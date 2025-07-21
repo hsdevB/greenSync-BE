@@ -143,3 +143,5 @@ vite.config.ts.timestamp-*
 *.bru
 bruno*
 
+# Raspberry Pi Code
+sensor_gateway.js
