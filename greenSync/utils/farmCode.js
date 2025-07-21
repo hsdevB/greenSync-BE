@@ -1,6 +1,6 @@
 // 팜코드 생성 유틸리티 (영어+숫자 조합, 6-8자)
 class FarmCode {
-    static createFarmCode() {
+    static async createFarmCode() {
       const letters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
       const numbers = '0123456789';
       
