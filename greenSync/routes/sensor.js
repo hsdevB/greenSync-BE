@@ -236,4 +236,62 @@ sensorRouter.get('/nutrient/code/:farmCode', async (req, res) => {
   }
 });
 
+sensorRouter.get('/illuminance/:farmId', async (req, res) => {
+  try {
+    const { farmId } = req.params;
+    
+    if (!farmId || isNaN(farmId) || parseInt(farmId) <= 0) {
+      logger.error(`sensorRouter.illuminance: 유효하지 않은 농장ID - farmId: ${farmId}`);
+      return res.status(400).json({
+        success: false,
+        message: '유효한 농장ID가 필요합니다.'
+      });
+    }
+
+    const illuminanceData = await sensorDataService.getIlluminanceByFarmId(parseInt(farmId));
+    logger.info(`sensorRouter.illuminance: 조도 데이터 조회 완료 - 농장ID: ${farmId}, 조회된 레코드 수: ${illuminanceData ? illuminanceData.length : 0}`);
+    
+    res.status(200).json({
+      success: true,
+      message: '조도 데이터 조회 성공',
+      data: illuminanceData
+    });
+  } catch (error) {
+    logger.error(`sensorRouter.illuminance: 조도 데이터 조회 실패 - 농장ID: ${req.params.farmId}, 에러: ${error.message}`);
+    res.status(500).json({
+      success: false,
+      message: '조도 데이터 조회에 실패했습니다.'
+    });
+  }
+});
+
+sensorRouter.get('/illuminance/code/:farmCode', async (req, res) => {
+  try {
+    const { farmCode } = req.params;
+    
+    if (!farmCode || typeof farmCode !== 'string' || farmCode.trim() === '') {
+      logger.error(`sensorRouter.illuminance.code: 유효하지 않은 농장코드 - farmCode: ${farmCode}`);
+      return res.status(400).json({
+        success: false,
+        message: '유효한 농장코드가 필요합니다.'
+      });
+    }
+
+    const illuminanceData = await sensorDataService.getIlluminanceByFarmCode(farmCode);
+    logger.info(`sensorRouter.illuminance.code: 조도 데이터 조회 완료 - 농장코드: ${farmCode}, 조회된 레코드 수: ${illuminanceData ? illuminanceData.length : 0}`);
+    
+    res.status(200).json({
+      success: true,
+      message: '조도 데이터 조회 성공',
+      data: illuminanceData
+    });
+  } catch (error) {
+    logger.error(`sensorRouter.illuminance.code: 조도 데이터 조회 실패 - 농장코드: ${req.params.farmCode}, 에러: ${error.message}`);
+    res.status(500).json({
+      success: false,
+      message: '조도 데이터 조회에 실패했습니다.'
+    });
+  }
+});
+
 export default sensorRouter;

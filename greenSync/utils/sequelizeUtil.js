@@ -12,4 +12,7 @@ class SequelizeUtil {
     }
 }
 
+// getOrderBy 함수를 named export로 추가
+export const getOrderBy = SequelizeUtil.getOrderBy;
+
 export default SequelizeUtil;

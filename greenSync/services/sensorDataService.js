@@ -2,6 +2,7 @@ import temperatureDao from '../dao/temperatureDao.js';
 import humidityDao from '../dao/humidityDao.js';
 import nutrientDao from '../dao/nutrientDao.js';
 import carbonDioxideDao from '../dao/carbonDioxideDao.js';
+import illuminanceDao from '../dao/illuminanceDao.js';
 
 const sensorDataService = {
   saveSensorData: async (data, farmCode) => {
@@ -10,7 +11,8 @@ const sensorDataService = {
       humidity,
       phLevel,
       elcDT,
-      co2
+      co2,
+      illuminance
     } = data;
 
     if (temperature !== undefined) {
@@ -27,6 +29,10 @@ const sensorDataService = {
 
     if (co2 !== undefined) {
       await carbonDioxideDao.saveCarbonDioxide(co2, farmCode);
+    }
+
+    if (illuminance !== undefined) {
+      await illuminanceDao.saveIlluminance(illuminance, farmCode);
     }
   },
 
@@ -60,6 +66,14 @@ const sensorDataService = {
 
   getNutrientByFarmCode: async (farmCode) => {
     return await nutrientDao.getNutrientByFarmCode(farmCode);
+  },
+
+  getIlluminanceByFarmId: async (farmId) => {
+    return await illuminanceDao.getIlluminanceByFarmId(farmId);
+  },
+
+  getIlluminanceByFarmCode: async (farmCode) => {
+    return await illuminanceDao.getIlluminanceByFarmCode(farmCode);
   }
 };
 

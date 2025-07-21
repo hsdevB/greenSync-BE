@@ -39,6 +39,11 @@ class Farm extends Model {
             sourceKey: 'id',
             as: 'humidities'
         });
+        db.Farm.hasMany(db.Illuminance, {
+            foreignKey: 'farmId',
+            sourceKey: 'id',
+            as: 'illuminances'
+        });
         db.Farm.hasMany(db.Temperature, {
             foreignKey: 'farmId',
             sourceKey: 'id',
