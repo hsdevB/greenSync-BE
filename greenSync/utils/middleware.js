@@ -2,7 +2,7 @@ import logger from './logger.js';
 import TokenUtil from './tokenUtil.js';
 
 class Middleware {
-  static isLoggedIn(req, res, next) {
+  static async isLoggedIn(req, res, next) {
     const token = req.headers && req.headers.token;
 
     if (token) {

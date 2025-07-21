@@ -33,9 +33,9 @@ class WeatherService {
       lat,
       lon,
       appid: this.API_KEY,
-      units: 'metric', // 섭씨 온도를 위한 설정
-      lang: 'ko',      // 한국어 응답을 위한 설정
-      exclude: 'minutely,hourly,daily,alerts' // 필요한 데이터만 포함
+      units: 'metric',
+      lang: 'ko',
+      exclude: 'minutely,hourly,daily,alerts'
     };
     try {
       const response = await axios.get(url, { params, timeout: 5000 });
@@ -51,8 +51,8 @@ class WeatherService {
       lat,
       lon,
       appid: this.API_KEY,
-      units: 'metric', // 섭씨 온도를 위한 설정
-      lang: 'ko'      // 한국어 응답을 위한 설정
+      units: 'metric',
+      lang: 'ko'
     };
     try {
       const response = await axios.get(url, { params, timeout: 5000 });
@@ -157,7 +157,6 @@ class WeatherService {
       return {
         success: true,
         cityName,
-        // stationNumber: coords.stationNumber, // 제거
         coordinates: { lat: coords.lat, lon: coords.lon },
         apiUsed: apiType,
         data: weatherData,
@@ -197,23 +196,17 @@ class WeatherService {
             weatherData = await this.getCurrentWeatherData(coords.lat, coords.lon);
           }
 
-          // DB에 저장될 데이터 (cityName 제거)
           const dbData = await this.convertToTableFormat(weatherData, city, coords, apiType); 
           
-          // 여기에 dbData를 저장하는 로직이 있다고 가정합니다.
-          // 예: await Weather.create(dbData); 
-
-          // API 응답용 데이터에 cityName 추가
           return {
-            cityName: city, // 브루노에서 보이도록 cityName 추가
+            cityName: city,
             ...dbData
           };
           
         } catch (err) {
           logger.warn(`${city} 날씨 조회 실패: ${err.message}`);
           return {
-            cityName: city, // 에러 보고 시 cityName 포함 (필요하다면)
-            // stationNumber: coords.stationNumber, // 제거
+            cityName: city,
             error: err.message
           };
         }
@@ -261,8 +254,7 @@ class WeatherService {
       );
 
       let insolation = 0.0; 
-      // 낮 시간에만 KMA HUB에서 일사량 데이터 조회 시도 (타임아웃 방지)
-      if (isDayValue === 'D') { // 'D'일 때만 일사량 조회
+      if (isDayValue === 'D') { 
         const kmaInsolation = await this.getKMAHubInsolationData(coords.stationNumber, observationTime); 
         if (kmaInsolation !== null) { 
           insolation = kmaInsolation; 
@@ -271,7 +263,7 @@ class WeatherService {
           logger.info(`밤 시간대 (isDay: ${isDayValue})이므로 KMA HUB 일사량 조회를 생략하고 일사량을 0으로 설정합니다. 지점: ${cityName}, 시간: ${observationTime}`);
       }
 
-      const isRainValue = this.calculateIsRain(current, weatherData); // 1 또는 0 반환
+      const isRainValue = this.calculateIsRain(current, weatherData); 
 
       return {
         observationTime: observationTime,                    
@@ -279,8 +271,8 @@ class WeatherService {
         windSpeed: current.wind_speed || weatherData.wind?.speed || null,   
         outsideTemp: Math.round(current.temp || weatherData.main?.temp), 
         dewPoint: current.dew_point || weatherData.main?.dew_point || null,
-        isRain: isRainValue === 1, // boolean으로 변환              
-        isDay: isDayValue === 'D', // boolean으로 변환                                        
+        isRain: isRainValue === 1, 
+        isDay: isDayValue === 'D',                                        
         insolation: insolation,                               
       };
 
@@ -328,14 +320,12 @@ class WeatherService {
         }
       }
       
-      // 방법 3: 시간대로 추정 (한국 기준)
       const currentHour = new Date().getHours();
-      // 0부터 23시까지. 오전 6시부터 오후 6시(18시)까지를 낮으로 간주합니다.
       return (currentHour >= 6 && currentHour <= 18) ? 'D' : 'N'; //
       
     } catch (err) {
       logger.warn(`밤낮여부 계산 오류: ${err.message}`);
-      return 'N'; // 오류 발생 시 'N' (밤)을 기본값으로 반환
+      return 'N'; 
     }
   }
 }

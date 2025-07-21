@@ -20,20 +20,20 @@ class HashUtil {
         throw new Error('password가 입력되지 않았습니다!');
       }
 
-      // 1. Salt 생성 (환경변수로 rounds 조정 가능)
+      //Salt 생성
       const saltRounds = process.env.SALT_ROUNDS ? parseInt(process.env.SALT_ROUNDS) : 10;
       const salt = await HashUtil.generateSalt(saltRounds);
       
-      logger.info(`hashUtil.makePasswordHash.info: salt=${salt}`); // Salt 정보 로깅
+      logger.info(`hashUtil.makePasswordHash.info: salt=${salt}`); 
       
-      // 2. 생성된 salt로 비밀번호 해싱
+      // 생성된 salt로 비밀번호 해싱
       const hash = await bcrypt.hash(password, salt);
       
       logger.info(`hashUtil.makePasswordHash.success: password hashed successfully`);
       
-      // 3. salt와 hash를 분리해서 저장할 수 있도록 반환
+      // salt와 hash를 분리해서 저장할 수 있도록 반환
       return {
-        hash: hash, // 전체 bcrypt 해시만 반환 (salt는 해시에 포함되어 있음)
+        hash: hash, 
       };
       
     } catch (err) {
@@ -48,10 +48,6 @@ class HashUtil {
         throw new Error('password, encryptedPassword는 필수값입니다!');
       }
 
-      // bcrypt.compare는 일반 텍스트 비밀번호와 전체 bcrypt 해시를 비교합니다.
-      // 암호화된 비밀번호가 'salt.hash' 형태의 레거시 포맷인 경우, bcrypt.compare는 자동으로 실패합니다.
-      // 따라서, 모든 비밀번호는 전체 bcrypt 해시 형태로 저장되어야 하며,
-      // 레거시 형식은 이 함수에서 직접 처리하지 않고, 필요하다면 데이터 마이그레이션을 권장합니다.
       const result = await bcrypt.compare(password, encryptedPassword);
       return result;
       
@@ -61,23 +57,22 @@ class HashUtil {
     }
   }
 
-  // 추가: bcrypt 해시에서 salt 추출하는 유틸리티 함수
+  // bcrypt 해시에서 salt 추출하는 유틸리티 함수
   static extractSaltFromHash(bcryptHash) {
     try {
       if (!bcryptHash || typeof bcryptHash !== 'string') {
         throw new Error('유효하지 않은 bcrypt 해시입니다.');
       }
       
-      // bcrypt 해시 형식: $2b$10$salt22characters$hash31characters
       const parts = bcryptHash.split('$');
       if (parts.length !== 4) {
         throw new Error('bcrypt 해시 형식이 올바르지 않습니다.');
       }
       
-      const algorithm = parts[1]; // 2a, 2b 등
-      const rounds = parts[2];    // salt rounds
-      const saltAndHash = parts[3]; // salt(22자) + hash(31자)
-      const salt = saltAndHash.substring(0, 22); // salt 부분만 추출
+      const algorithm = parts[1]; 
+      const rounds = parts[2];    
+      const saltAndHash = parts[3]; 
+      const salt = saltAndHash.substring(0, 22); 
       
       const fullSalt = `$${algorithm}$${rounds}$${salt}`;
       

@@ -8,7 +8,7 @@ class UserService {
     try {
       // 1. 팜코드 유효성 검사 및 농장 정보 조회
       const farm = await FarmService.getFarmByCode(params.farmCode);
-      if (!farm) { // 팜코드가 없을 경우 오류 처리
+      if (!farm) {
         throw new Error('유효하지 않은 팜코드입니다.');
       }
 
@@ -21,7 +21,7 @@ class UserService {
       const finalPassword = passwordHash.hash;
       // 3. 사용자 정보 저장
       const userData = {
-        farmId: farm.id, // <-- 이 부분을 수정: farm 객체에서 실제 정수형 ID를 사용
+        farmId: farm.id,
         userId: params.userId,
         password: finalPassword,
         name: params.name,
@@ -39,7 +39,7 @@ class UserService {
           id: result.insertedId,
           userId: params.userId,
           name: params.name,
-          farmId: farm.id, // <-- 응답 데이터에도 정수형 ID를 사용
+          farmId: farm.id,
         }
       };
 
