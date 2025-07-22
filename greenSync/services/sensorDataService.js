@@ -26,8 +26,16 @@ const validateSensorData = (data, farmCode) => {
     return errors;
   }
 
+  // 검증 대상 센서 필드들
+  const sensorFields = ['temperature', 'humidity', 'phLevel', 'elcDT', 'co2', 'illuminance'];
+
   Object.keys(data).forEach(key => {
     const value = data[key];
+    
+    // timestamp 등 센서 데이터가 아닌 필드는 검증에서 제외
+    if (!sensorFields.includes(key)) {
+      return;
+    }
     
     if (value !== undefined && value !== null) {
       if (typeof value !== 'number' || isNaN(value)) {
