@@ -1,6 +1,6 @@
 import { Op } from 'sequelize';
 import { getOrderBy } from '../utils/sequelizeUtil.js';
-import logger from '../utils/logger.js';
+import Logger from '../utils/logger.js';
 import User from '../models/user.js';
 import Farm from '../models/farm.js';
 
@@ -8,22 +8,22 @@ class UserDao {
   static async insert(params) {
     try {
       if (!params || typeof params !== 'object') {
-        logger.error('UserDao.insert: 사용자 데이터 파라미터가 제공되지 않았습니다.');
+        Logger.error('UserDao.insert: 사용자 데이터 파라미터가 제공되지 않았습니다.');
         throw new Error('사용자 데이터 파라미터가 필요합니다.');
       }
 
       if (!params.userId || params.userId.trim() === '') {
-        logger.error('UserDao.insert: 사용자 ID가 제공되지 않았습니다.');
+        Logger.error('UserDao.insert: 사용자 ID가 제공되지 않았습니다.');
         throw new Error('사용자 ID는 필수값입니다.');
       }
 
       if (!params.password || params.password.trim() === '') {
-        logger.error('UserDao.insert: 비밀번호가 제공되지 않았습니다.');
+        Logger.error('UserDao.insert: 비밀번호가 제공되지 않았습니다.');
         throw new Error('비밀번호는 필수값입니다.');
       }
 
       const inserted = await User.create(params);
-      logger.info(`UserDao.insert: 사용자 데이터 저장 완료 - ID: ${inserted.id}, 사용자ID: ${inserted.userId}`);
+      Logger.info(`UserDao.insert: 사용자 데이터 저장 완료 - ID: ${inserted.id}, 사용자ID: ${inserted.userId}`);
       return { insertedId: inserted.id };
     } catch (err) {
       if (err.message.includes('사용자 데이터 파라미터') || 
@@ -31,7 +31,7 @@ class UserDao {
           err.message.includes('비밀번호는 필수값입니다')) {
         throw err;
       }
-      logger.error(`UserDao.insert: 사용자 데이터 저장 실패 - 에러: ${err.message}`);
+      Logger.error(`UserDao.insert: 사용자 데이터 저장 실패 - 에러: ${err.message}`);
       throw new Error(`사용자 데이터 저장에 실패했습니다: ${err.message}`);
     }
   }
@@ -39,7 +39,7 @@ class UserDao {
   static async selectList(params) {
     try {
       if (!params || typeof params !== 'object') {
-        logger.error('UserDao.selectList: 검색 파라미터가 제공되지 않았습니다.');
+        Logger.error('UserDao.selectList: 검색 파라미터가 제공되지 않았습니다.');
         throw new Error('검색 파라미터가 필요합니다.');
       }
 
@@ -114,13 +114,13 @@ class UserDao {
         ]
       });
       
-      logger.info(`UserDao.selectList: 사용자 목록 조회 완료 - 조회된 레코드 수: ${result.count}`);
+      Logger.info(`UserDao.selectList: 사용자 목록 조회 완료 - 조회된 레코드 수: ${result.count}`);
       return result;
     } catch (err) {
       if (err.message.includes('검색 파라미터가 필요합니다')) {
         throw err;
       }
-      logger.error(`UserDao.selectList: 사용자 목록 조회 실패 - 에러: ${err.message}`);
+      Logger.error(`UserDao.selectList: 사용자 목록 조회 실패 - 에러: ${err.message}`);
       throw new Error(`사용자 목록 조회에 실패했습니다: ${err.message}`);
     }
   }
@@ -128,12 +128,12 @@ class UserDao {
   static async selectInfo(params) {
     try {
       if (!params || !params.id) {
-        logger.error('UserDao.selectInfo: 사용자 ID가 제공되지 않았습니다.');
+        Logger.error('UserDao.selectInfo: 사용자 ID가 제공되지 않았습니다.');
         throw new Error('사용자 ID가 필요합니다.');
       }
 
       if (typeof params.id !== 'number' || isNaN(params.id) || params.id <= 0) {
-        logger.error(`UserDao.selectInfo: 유효하지 않은 사용자 ID: ${params.id}`);
+        Logger.error(`UserDao.selectInfo: 유효하지 않은 사용자 ID: ${params.id}`);
         throw new Error('유효한 사용자 ID가 필요합니다.');
       }
 
@@ -149,9 +149,9 @@ class UserDao {
       });
       
       if (result) {
-        logger.info(`UserDao.selectInfo: 사용자 정보 조회 완료 - ID: ${params.id}, 사용자ID: ${result.userId}`);
+        Logger.info(`UserDao.selectInfo: 사용자 정보 조회 완료 - ID: ${params.id}, 사용자ID: ${result.userId}`);
       } else {
-        logger.info(`UserDao.selectInfo: 사용자를 찾을 수 없음 - ID: ${params.id}`);
+        Logger.info(`UserDao.selectInfo: 사용자를 찾을 수 없음 - ID: ${params.id}`);
       }
       
       return result;
@@ -160,7 +160,7 @@ class UserDao {
           err.message.includes('유효한 사용자 ID가 필요합니다')) {
         throw err;
       }
-      logger.error(`UserDao.selectInfo: 사용자 정보 조회 실패 - ID: ${params.id}, 에러: ${err.message}`);
+      Logger.error(`UserDao.selectInfo: 사용자 정보 조회 실패 - ID: ${params.id}, 에러: ${err.message}`);
       throw new Error(`사용자 정보 조회에 실패했습니다: ${err.message}`);
     }
   }
@@ -168,12 +168,12 @@ class UserDao {
   static async selectUser(params) {
     try {
       if (!params || !params.userId) {
-        logger.error('UserDao.selectUser: 사용자 ID가 제공되지 않았습니다.');
+        Logger.error('UserDao.selectUser: 사용자 ID가 제공되지 않았습니다.');
         throw new Error('사용자 ID가 필요합니다.');
       }
 
       if (typeof params.userId !== 'string' || params.userId.trim() === '') {
-        logger.error(`UserDao.selectUser: 유효하지 않은 사용자 ID: ${params.userId}`);
+        Logger.error(`UserDao.selectUser: 유효하지 않은 사용자 ID: ${params.userId}`);
         throw new Error('유효한 사용자 ID가 필요합니다.');
       }
 
@@ -192,9 +192,9 @@ class UserDao {
       });
       
       if (result) {
-        logger.info(`UserDao.selectUser: 사용자 조회 완료 - 사용자ID: ${params.userId}, ID: ${result.id}`);
+        Logger.info(`UserDao.selectUser: 사용자 조회 완료 - 사용자ID: ${params.userId}, ID: ${result.id}`);
       } else {
-        logger.info(`UserDao.selectUser: 사용자를 찾을 수 없음 - 사용자ID: ${params.userId}`);
+        Logger.info(`UserDao.selectUser: 사용자를 찾을 수 없음 - 사용자ID: ${params.userId}`);
       }
       
       return result;
@@ -203,7 +203,7 @@ class UserDao {
           err.message.includes('유효한 사용자 ID가 필요합니다')) {
         throw err;
       }
-      logger.error(`UserDao.selectUser: 사용자 조회 실패 - 사용자ID: ${params.userId}, 에러: ${err.message}`);
+      Logger.error(`UserDao.selectUser: 사용자 조회 실패 - 사용자ID: ${params.userId}, 에러: ${err.message}`);
       throw new Error(`사용자 조회에 실패했습니다: ${err.message}`);
     }
   }
@@ -211,12 +211,12 @@ class UserDao {
   static async update(params) {
     try {
       if (!params || !params.id) {
-        logger.error('UserDao.update: 사용자 ID가 제공되지 않았습니다.');
+        Logger.error('UserDao.update: 사용자 ID가 제공되지 않았습니다.');
         throw new Error('사용자 ID가 필요합니다.');
       }
 
       if (typeof params.id !== 'number' || isNaN(params.id) || params.id <= 0) {
-        logger.error(`UserDao.update: 유효하지 않은 사용자 ID: ${params.id}`);
+        Logger.error(`UserDao.update: 유효하지 않은 사용자 ID: ${params.id}`);
         throw new Error('유효한 사용자 ID가 필요합니다.');
       }
 
@@ -224,14 +224,14 @@ class UserDao {
         where: { id: params.id }
       });
       
-      logger.info(`UserDao.update: 사용자 정보 수정 완료 - ID: ${params.id}, 수정된 레코드 수: ${result}`);
+      Logger.info(`UserDao.update: 사용자 정보 수정 완료 - ID: ${params.id}, 수정된 레코드 수: ${result}`);
       return { updatedCount: result };
     } catch (err) {
       if (err.message.includes('사용자 ID가 필요합니다') || 
           err.message.includes('유효한 사용자 ID가 필요합니다')) {
         throw err;
       }
-      logger.error(`UserDao.update: 사용자 정보 수정 실패 - ID: ${params.id}, 에러: ${err.message}`);
+      Logger.error(`UserDao.update: 사용자 정보 수정 실패 - ID: ${params.id}, 에러: ${err.message}`);
       throw new Error(`사용자 정보 수정에 실패했습니다: ${err.message}`);
     }
   }
@@ -239,12 +239,12 @@ class UserDao {
   static async delete(params) {
     try {
       if (!params || !params.id) {
-        logger.error('UserDao.delete: 사용자 ID가 제공되지 않았습니다.');
+        Logger.error('UserDao.delete: 사용자 ID가 제공되지 않았습니다.');
         throw new Error('사용자 ID가 필요합니다.');
       }
 
       if (typeof params.id !== 'number' || isNaN(params.id) || params.id <= 0) {
-        logger.error(`UserDao.delete: 유효하지 않은 사용자 ID: ${params.id}`);
+        Logger.error(`UserDao.delete: 유효하지 않은 사용자 ID: ${params.id}`);
         throw new Error('유효한 사용자 ID가 필요합니다.');
       }
 
@@ -252,14 +252,14 @@ class UserDao {
         where: { id: params.id }
       });
       
-      logger.info(`UserDao.delete: 사용자 삭제 완료 - ID: ${params.id}, 삭제된 레코드 수: ${result}`);
+      Logger.info(`UserDao.delete: 사용자 삭제 완료 - ID: ${params.id}, 삭제된 레코드 수: ${result}`);
       return { deletedCount: result };
     } catch (err) {
       if (err.message.includes('사용자 ID가 필요합니다') || 
           err.message.includes('유효한 사용자 ID가 필요합니다')) {
         throw err;
       }
-      logger.error(`UserDao.delete: 사용자 삭제 실패 - ID: ${params.id}, 에러: ${err.message}`);
+      Logger.error(`UserDao.delete: 사용자 삭제 실패 - ID: ${params.id}, 에러: ${err.message}`);
       throw new Error(`사용자 삭제에 실패했습니다: ${err.message}`);
     }
   }
@@ -267,7 +267,7 @@ class UserDao {
   static async checkUserExists(userId) {
     try {
       if (!userId || typeof userId !== 'string' || userId.trim() === '') {
-        logger.error('UserDao.checkUserExists: 사용자 ID가 제공되지 않았습니다.');
+        Logger.error('UserDao.checkUserExists: 사용자 ID가 제공되지 않았습니다.');
         throw new Error('사용자 ID가 필요합니다.');
       }
 
@@ -276,13 +276,13 @@ class UserDao {
       });
       
       const exists = count > 0;
-      logger.info(`UserDao.checkUserExists: 사용자 존재 여부 확인 완료 - 사용자ID: ${userId}, 존재: ${exists}`);
+      Logger.info(`UserDao.checkUserExists: 사용자 존재 여부 확인 완료 - 사용자ID: ${userId}, 존재: ${exists}`);
       return exists;
     } catch (err) {
       if (err.message.includes('사용자 ID가 필요합니다')) {
         throw err;
       }
-      logger.error(`UserDao.checkUserExists: 사용자 존재 여부 확인 실패 - 사용자ID: ${userId}, 에러: ${err.message}`);
+      Logger.error(`UserDao.checkUserExists: 사용자 존재 여부 확인 실패 - 사용자ID: ${userId}, 에러: ${err.message}`);
       throw new Error(`사용자 존재 여부 확인에 실패했습니다: ${err.message}`);
     }
   }

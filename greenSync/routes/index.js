@@ -6,6 +6,7 @@ import farmRouter from './farm.js';
 import signupRouter from './signup.js'; 
 import weatherRouter from './weather.js';
 import sensorRouter from './sensor.js';
+import userRouter from './user.js';
 
 const router = express.Router();
 
@@ -15,5 +16,6 @@ router.use('/farm', farmRouter);
 router.use('/signup', signupRouter);
 router.use('/weather', weatherRouter);
 router.use('/sensor', sensorRouter);
+router.use('/user', userRouter);
 
 export default router;

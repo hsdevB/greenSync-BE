@@ -6,14 +6,11 @@ import fs from 'fs';
 dotenv.config();
 
 class Logger {
-  constructor() {
-    this.loggerLevel = process.env.LOGGER_LEVEL || 'info';
-    this.logDir = 'log';
-    this.logger = null;
-    this.init();
-  }
+  static loggerLevel = process.env.LOGGER_LEVEL || 'info';
+  static logDir = 'log';
+  static logger = null;
 
-  init() {
+  static init() {
     if (!fs.existsSync(this.logDir)) {
       fs.mkdirSync(this.logDir);
     }
@@ -46,50 +43,71 @@ class Logger {
   }
 
   // 로그 레벨별 메서드들
-  info(message) {
+  static info(message) {
+    if (!this.logger) {
+      this.init();
+    }
     this.logger.info(message);
   }
 
-  error(message) {
+  static error(message) {
+    if (!this.logger) {
+      this.init();
+    }
     this.logger.error(message);
   }
 
-  warn(message) {
+  static warn(message) {
+    if (!this.logger) {
+      this.init();
+    }
     this.logger.warn(message);
   }
 
-  debug(message) {
+  static debug(message) {
+    if (!this.logger) {
+      this.init();
+    }
     this.logger.debug(message);
   }
 
-  verbose(message) {
+  static verbose(message) {
+    if (!this.logger) {
+      this.init();
+    }
     this.logger.verbose(message);
   }
 
-  silly(message) {
+  static silly(message) {
+    if (!this.logger) {
+      this.init();
+    }
     this.logger.silly(message);
   }
 
   // 로그 레벨 동적 변경
-  setLevel(level) {
+  static setLevel(level) {
     this.loggerLevel = level;
-    this.logger.level = level;
-    this.logger.transports.forEach(transport => {
-      transport.level = level;
-    });
+    if (this.logger) {
+      this.logger.level = level;
+      this.logger.transports.forEach(transport => {
+        transport.level = level;
+      });
+    }
   }
 
   // 현재 로그 레벨 반환
-  getLevel() {
+  static getLevel() {
     return this.loggerLevel;
   }
 
   // 로거 인스턴스 반환 (winston 직접 사용이 필요한 경우)
-  getLogger() {
+  static getLogger() {
+    if (!this.logger) {
+      this.init();
+    }
     return this.logger;
   }
 }
 
-// 싱글톤 인스턴스 생성 및 export
-const loggerInstance = new Logger();
-export default loggerInstance;
+export default Logger;
