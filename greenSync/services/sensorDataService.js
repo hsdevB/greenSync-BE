@@ -3,7 +3,7 @@ import humidityDao from '../dao/humidityDao.js';
 import nutrientDao from '../dao/nutrientDao.js';
 import carbonDioxideDao from '../dao/carbonDioxideDao.js';
 import illuminanceDao from '../dao/illuminanceDao.js';
-import logger from '../utils/logger.js';
+import Logger from '../utils/logger.js';
 
 const SENSOR_RANGES = {
   temperature: { min: -50, max: 100 },
@@ -26,13 +26,10 @@ const validateSensorData = (data, farmCode) => {
     return errors;
   }
 
-  // 검증 대상 센서 필드들
   const sensorFields = ['temperature', 'humidity', 'phLevel', 'elcDT', 'co2', 'illuminance'];
 
   Object.keys(data).forEach(key => {
     const value = data[key];
-    
-    // timestamp 등 센서 데이터가 아닌 필드는 검증에서 제외
     if (!sensorFields.includes(key)) {
       return;
     }
@@ -115,11 +112,11 @@ class SensorDataService {
         }
       }
 
-      logger.info(`sensorDataService.saveSensorData.response result: ${JSON.stringify(savedData)}`);
+      Logger.info(`sensorDataService.saveSensorData.response result: ${JSON.stringify(savedData)}`);
       return savedData;
 
     } catch (error) {
-      logger.error(`sensorDataService.saveSensorData.error: ${error.message}`);
+      Logger.error(`sensorDataService.saveSensorData.error: ${error.message}`);
       throw error;
     }
   }
@@ -131,10 +128,10 @@ class SensorDataService {
       }
 
       const result = await temperatureDao.getTemperatureByFarmId(farmId);
-      logger.info(`sensorDataService.getTemperatureByFarmId.response result: ${JSON.stringify(result)}`);
+      Logger.info(`sensorDataService.getTemperatureByFarmId.response result: ${JSON.stringify(result)}`);
       return result;
     } catch (error) {
-      logger.error(`sensorDataService.getTemperatureByFarmId.error: ${error.message}`);
+      Logger.error(`sensorDataService.getTemperatureByFarmId.error: ${error.message}`);
       throw error;
     }
   }
@@ -146,10 +143,10 @@ class SensorDataService {
       }
 
       const result = await temperatureDao.getTemperatureByFarmCode(farmCode);
-      logger.info(`sensorDataService.getTemperatureByFarmCode.response result: ${JSON.stringify(result)}`);
+      Logger.info(`sensorDataService.getTemperatureByFarmCode.response result: ${JSON.stringify(result)}`);
       return result;
     } catch (error) {
-      logger.error(`sensorDataService.getTemperatureByFarmCode.error: ${error.message}`);
+      Logger.error(`sensorDataService.getTemperatureByFarmCode.error: ${error.message}`);
       throw error;
     }
   }
@@ -161,10 +158,10 @@ class SensorDataService {
       }
 
       const result = await humidityDao.getHumidityByFarmId(farmId);
-      logger.info(`sensorDataService.getHumidityByFarmId.response result: ${JSON.stringify(result)}`);
+      Logger.info(`sensorDataService.getHumidityByFarmId.response result: ${JSON.stringify(result)}`);
       return result;
     } catch (error) {
-      logger.error(`sensorDataService.getHumidityByFarmId.error: ${error.message}`);
+      Logger.error(`sensorDataService.getHumidityByFarmId.error: ${error.message}`);
       throw error;
     }
   }
@@ -176,10 +173,10 @@ class SensorDataService {
       }
 
       const result = await humidityDao.getHumidityByFarmCode(farmCode);
-      logger.info(`sensorDataService.getHumidityByFarmCode.response result: ${JSON.stringify(result)}`);
+      Logger.info(`sensorDataService.getHumidityByFarmCode.response result: ${JSON.stringify(result)}`);
       return result;
     } catch (error) {
-      logger.error(`sensorDataService.getHumidityByFarmCode.error: ${error.message}`);
+      Logger.error(`sensorDataService.getHumidityByFarmCode.error: ${error.message}`);
       throw error;
     }
   }
@@ -191,10 +188,10 @@ class SensorDataService {
       }
 
       const result = await carbonDioxideDao.getCarbonDioxideByFarmId(farmId);
-      logger.info(`sensorDataService.getCarbonDioxideByFarmId.response result: ${JSON.stringify(result)}`);
+      Logger.info(`sensorDataService.getCarbonDioxideByFarmId.response result: ${JSON.stringify(result)}`);
       return result;
     } catch (error) {
-      logger.error(`sensorDataService.getCarbonDioxideByFarmId.error: ${error.message}`);
+      Logger.error(`sensorDataService.getCarbonDioxideByFarmId.error: ${error.message}`);
       throw error;
     }
   }
@@ -206,10 +203,10 @@ class SensorDataService {
       }
 
       const result = await carbonDioxideDao.getCarbonDioxideByFarmCode(farmCode);
-      logger.info(`sensorDataService.getCarbonDioxideByFarmCode.response result: ${JSON.stringify(result)}`);
+      Logger.info(`sensorDataService.getCarbonDioxideByFarmCode.response result: ${JSON.stringify(result)}`);
       return result;
     } catch (error) {
-      logger.error(`sensorDataService.getCarbonDioxideByFarmCode.error: ${error.message}`);
+      Logger.error(`sensorDataService.getCarbonDioxideByFarmCode.error: ${error.message}`);
       throw error;
     }
   }
@@ -221,10 +218,10 @@ class SensorDataService {
       }
 
       const result = await nutrientDao.getNutrientByFarmId(farmId);
-      logger.info(`sensorDataService.getNutrientByFarmId.response result: ${JSON.stringify(result)}`);
+      Logger.info(`sensorDataService.getNutrientByFarmId.response result: ${JSON.stringify(result)}`);
       return result;
     } catch (error) {
-      logger.error(`sensorDataService.getNutrientByFarmId.error: ${error.message}`);
+      Logger.error(`sensorDataService.getNutrientByFarmId.error: ${error.message}`);
       throw error;
     }
   }
@@ -236,10 +233,10 @@ class SensorDataService {
       }
 
       const result = await nutrientDao.getNutrientByFarmCode(farmCode);
-      logger.info(`sensorDataService.getNutrientByFarmCode.response result: ${JSON.stringify(result)}`);
+      Logger.info(`sensorDataService.getNutrientByFarmCode.response result: ${JSON.stringify(result)}`);
       return result;
     } catch (error) {
-      logger.error(`sensorDataService.getNutrientByFarmCode.error: ${error.message}`);
+      Logger.error(`sensorDataService.getNutrientByFarmCode.error: ${error.message}`);
       throw error;
     }
   }
@@ -251,10 +248,10 @@ class SensorDataService {
       }
 
       const result = await illuminanceDao.getIlluminanceByFarmId(farmId);
-      logger.info(`sensorDataService.getIlluminanceByFarmId.response result: ${JSON.stringify(result)}`);
+      Logger.info(`sensorDataService.getIlluminanceByFarmId.response result: ${JSON.stringify(result)}`);
       return result;
     } catch (error) {
-      logger.error(`sensorDataService.getIlluminanceByFarmId.error: ${error.message}`);
+      Logger.error(`sensorDataService.getIlluminanceByFarmId.error: ${error.message}`);
       throw error;
     }
   }
@@ -266,10 +263,10 @@ class SensorDataService {
       }
 
       const result = await illuminanceDao.getIlluminanceByFarmCode(farmCode);
-      logger.info(`sensorDataService.getIlluminanceByFarmCode.response result: ${JSON.stringify(result)}`);
+      Logger.info(`sensorDataService.getIlluminanceByFarmCode.response result: ${JSON.stringify(result)}`);
       return result;
     } catch (error) {
-      logger.error(`sensorDataService.getIlluminanceByFarmCode.error: ${error.message}`);
+      Logger.error(`sensorDataService.getIlluminanceByFarmCode.error: ${error.message}`);
       throw error;
     }
   }
