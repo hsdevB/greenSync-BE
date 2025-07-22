@@ -1,5 +1,5 @@
 import express from 'express';
-import AuthMiddleware from '../utils/middleware.js';
+import AuthMiddleware from '../utils/authMiddleware.js';
 import Logger from '../utils/logger.js';
 
 const authRouter = express.Router();
