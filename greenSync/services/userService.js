@@ -96,91 +96,147 @@ class UserService {
     }
   }
 
-  static async list(params) {
+  static async getUserProfile(userId) {
     try {
-      if (!params || typeof params !== 'object') {
-        Logger.error('UserService.list: 조회 파라미터가 제공되지 않았습니다.');
-        throw new Error('조회 조건이 필요합니다.');
+      if (!userId || typeof userId !== 'string' || userId.trim() === '') {
+        Logger.error('UserService.getUserProfile: 사용자ID가 제공되지 않았습니다.');
+        throw new Error('사용자ID가 필요합니다.');
       }
 
-      const result = await UserDao.selectList(params);
+      const user = await UserDao.select({ userId });
       
-      Logger.info(`UserService.list: 사용자 목록 조회 완료 - 조회된 사용자 수: ${result?.length || 0}`);
-      return result;
-    } catch (err) {
-      if (err.message.includes('조회 조건이 필요합니다')) {
-        throw err;
-      }
-      Logger.error(`UserService.list: 사용자 목록 조회 실패 - 에러: ${err.message}`);
-      throw new Error(`사용자 목록 조회에 실패했습니다: ${err.message}`);
-    }
-  }
-
-  static async info(params) {
-    try {
-      if (!params || typeof params !== 'object') {
-        Logger.error('UserService.info: 사용자 정보 조회 파라미터가 제공되지 않았습니다.');
-        throw new Error('사용자 정보 조회 조건이 필요합니다.');
-      }
-
-      if (!params.id || isNaN(params.id) || parseInt(params.id) <= 0) {
-        Logger.error(`UserService.info: 유효하지 않은 사용자ID - id: ${params.id}`);
-        throw new Error('유효한 사용자ID가 필요합니다.');
-      }
-
-      const result = await UserDao.selectInfo(params);
-      
-      if (!result) {
-        Logger.error(`UserService.info: 존재하지 않는 사용자 - id: ${params.id}`);
+      if (!user) {
+        Logger.error(`UserService.getUserProfile: 존재하지 않는 사용자 - userId: ${userId}`);
         throw new Error('존재하지 않는 사용자입니다.');
       }
 
-      Logger.info(`UserService.info: 사용자 정보 조회 완료 - 사용자ID: ${result.userId}, 이름: ${result.name}`);
-      return result;
+      const farm = await FarmService.getFarmByCode(user.farmId);
+      if (!farm) {
+        Logger.error(`UserService.getUserProfile: 존재하지 않는 농장 - farmId: ${user.farmId}`);
+        throw new Error('존재하지 않는 농장입니다.');
+      }
+
+      Logger.info(`UserService.getUserProfile: 사용자 프로필 조회 완료 - userId: ${userId}`);
+      return {
+        success: true,
+        data: {
+          userId: user.userId,
+          name: user.name,
+          email: user.email,
+          phoneNumber: user.phoneNumber,
+          farmCode: farm.farmCode,
+        }
+      };
     } catch (err) {
-      if (err.message.includes('사용자 정보 조회 조건이 필요합니다') ||
-          err.message.includes('유효한 사용자ID가 필요합니다') ||
-          err.message.includes('존재하지 않는 사용자')) {
+      if (err.message.includes('사용자ID가 필요합니다') || 
+          err.message.includes('존재하지 않는 사용자') ||
+          err.message.includes('존재하지 않는 농장')) {
         throw err;
       }
-      Logger.error(`UserService.info: 사용자 정보 조회 실패 - id: ${params?.id}, 에러: ${err.message}`);
-      throw new Error(`사용자 정보 조회에 실패했습니다: ${err.message}`);
+      Logger.error(`UserService.getUserProfile: 사용자 프로필 조회 실패 - userId: ${userId}, 에러: ${err.message}`);
+      throw new Error(`사용자 프로필 조회에 실패했습니다: ${err.message}`);
     }
   }
 
-  static async update(params) {
+  static async updateUserProfile(userId, updateData) {
     try {
-      if (!params || typeof params !== 'object') {
-        Logger.error('UserService.update: 수정 파라미터가 제공되지 않았습니다.');
-        throw new Error('수정할 정보가 필요합니다.');
+      if (!userId || typeof userId !== 'string' || userId.trim() === '') {
+        Logger.error('UserService.updateUserProfile: 사용자ID가 제공되지 않았습니다.');
+        throw new Error('사용자ID가 필요합니다.');
       }
 
-      if (!params.id || isNaN(params.id) || parseInt(params.id) <= 0) {
-        Logger.error(`UserService.update: 유효하지 않은 사용자ID - id: ${params.id}`);
-        throw new Error('유효한 사용자ID가 필요합니다.');
+      if (!updateData || typeof updateData !== 'object') {
+        Logger.error('UserService.updateUserProfile: 수정할 데이터가 제공되지 않았습니다.');
+        throw new Error('수정할 데이터가 필요합니다.');
       }
 
-      if (params.password && (typeof params.password !== 'string' || params.password.trim() === '')) {
-        Logger.error('UserService.update: 유효하지 않은 비밀번호 형식');
-        throw new Error('유효한 비밀번호 형식이 필요합니다.');
+      const existingUser = await UserDao.select({ userId });
+      if (!existingUser) {
+        Logger.error(`UserService.updateUserProfile: 존재하지 않는 사용자 - userId: ${userId}`);
+        throw new Error('존재하지 않는 사용자입니다.');
       }
 
-      if (params.password) {
-        params.password = await HashUtil.makePasswordHash(params.password);
-      }
-
-      const result = await UserDao.update(params);
+      const allowedFields = ['name', 'email', 'phoneNumber'];
+      const filteredData = {};
       
-      Logger.info(`UserService.update: 사용자 정보 수정 완료 - 사용자ID: ${params.id}`);
-      return result;
+      for (const field of allowedFields) {
+        if (updateData[field] !== undefined) {
+          if (field === 'email' && updateData[field] !== null && typeof updateData[field] !== 'string') {
+            throw new Error('유효한 이메일 형식이 필요합니다.');
+          }
+          if (field === 'phoneNumber' && updateData[field] !== null && typeof updateData[field] !== 'string') {
+            throw new Error('유효한 전화번호 형식이 필요합니다.');
+          }
+          filteredData[field] = updateData[field];
+        }
+      }
+
+      if (updateData.password) {
+        if (typeof updateData.password !== 'string' || updateData.password.trim() === '') {
+          throw new Error('유효한 비밀번호가 필요합니다.');
+        }
+        const passwordHash = await HashUtil.makePasswordHash(updateData.password);
+        filteredData.password = passwordHash.hash;
+      }
+
+      if (Object.keys(filteredData).length === 0) {
+        throw new Error('수정할 데이터가 없습니다.');
+      }
+
+      const result = await UserDao.update({
+        id: existingUser.id,
+        ...filteredData
+      });
+
+      Logger.info(`UserService.updateUserProfile: 사용자 프로필 수정 완료 - userId: ${userId}`);
+      return {
+        success: true,
+        message: '프로필이 성공적으로 수정되었습니다.',
+        data: { updatedCount: result.updatedCount }
+      };
     } catch (err) {
-      if (err.message.includes('수정할 정보가 필요합니다') ||
-          err.message.includes('유효한 사용자ID가 필요합니다') ||
-          err.message.includes('유효한 비밀번호 형식')) {
+      if (err.message.includes('사용자ID가 필요합니다') ||
+          err.message.includes('수정할 데이터가 필요합니다') ||
+          err.message.includes('존재하지 않는 사용자') ||
+          err.message.includes('유효한 이메일 형식') ||
+          err.message.includes('유효한 전화번호 형식') ||
+          err.message.includes('유효한 비밀번호가 필요합니다') ||
+          err.message.includes('수정할 데이터가 없습니다')) {
         throw err;
       }
-      Logger.error(`UserService.update: 사용자 정보 수정 실패 - id: ${params?.id}, 에러: ${err.message}`);
-      throw new Error(`사용자 정보 수정에 실패했습니다: ${err.message}`);
+      Logger.error(`UserService.updateUserProfile: 사용자 프로필 수정 실패 - userId: ${userId}, 에러: ${err.message}`);
+      throw new Error(`사용자 프로필 수정에 실패했습니다: ${err.message}`);
+    }
+  }
+
+  static async deleteUser(userId) {
+    try {
+      if (!userId || typeof userId !== 'string' || userId.trim() === '') {
+        Logger.error('UserService.deleteUser: 사용자ID가 제공되지 않았습니다.');
+        throw new Error('사용자ID가 필요합니다.');
+      }
+
+      const existingUser = await UserDao.select({ userId });
+      if (!existingUser) {
+        Logger.error(`UserService.deleteUser: 존재하지 않는 사용자 - userId: ${userId}`);
+        throw new Error('존재하지 않는 사용자입니다.');
+      }
+
+      const result = await UserDao.delete({ id: existingUser.id });
+
+      Logger.info(`UserService.deleteUser: 사용자 삭제 완료 - userId: ${userId}`);
+      return {
+        success: true,
+        message: '사용자가 성공적으로 삭제되었습니다.',
+        data: { deletedCount: result.deletedCount }
+      };
+    } catch (err) {
+      if (err.message.includes('사용자ID가 필요합니다') ||
+          err.message.includes('존재하지 않는 사용자')) {
+        throw err;
+      }
+      Logger.error(`UserService.deleteUser: 사용자 삭제 실패 - userId: ${userId}, 에러: ${err.message}`);
+      throw new Error(`사용자 삭제에 실패했습니다: ${err.message}`);
     }
   }
 }

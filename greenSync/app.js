@@ -31,7 +31,7 @@ app.get('/health', (req, res) => {
 });
 
 // Error Handler
-app.use((err, req, res) => {
+app.use((err, req, res, next) => {
   Logger.error(`Error: ${err.message}`);
   res.status(500).json({
     success: false,

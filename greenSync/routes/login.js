@@ -55,7 +55,7 @@ loginRouter.post('/', async (req, res) => {
 
         const result = await LoginService.login(params);
 
-        Logger.info(`loginRouter.login: 로그인 성공 - 사용자ID: ${params.userId}, 농장ID: ${result.user.farmId}`);
+        Logger.info(`loginRouter.login: 로그인 성공 - 사용자ID: ${params.userId}, 농장 코드: ${result.farmCode}`);
         res.status(200).json({
             success: true,
             message: '로그인 성공',

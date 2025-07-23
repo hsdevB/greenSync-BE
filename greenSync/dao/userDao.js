@@ -1,5 +1,3 @@
-import { Op } from 'sequelize';
-import { getOrderBy } from '../utils/sequelizeUtil.js';
 import Logger from '../utils/logger.js';
 import User from '../models/user.js';
 import Farm from '../models/farm.js';
@@ -36,149 +34,20 @@ class UserDao {
     }
   }
 
-  static async selectList(params) {
-    try {
-      if (!params || typeof params !== 'object') {
-        Logger.error('UserDao.selectList: 검색 파라미터가 제공되지 않았습니다.');
-        throw new Error('검색 파라미터가 필요합니다.');
-      }
-
-      const setQuery = {};
-      
-      if (params.userId) {
-        setQuery.where = {
-          ...setQuery.where,
-          userId: { [Op.eq]: params.userId }
-        };
-      }
-      
-      if (params.name) {
-        setQuery.where = {
-          ...setQuery.where,
-          name: { [Op.like]: `%${params.name}%` }
-        };
-      }
-      
-      if (params.email) {
-        setQuery.where = {
-          ...setQuery.where,
-          email: { [Op.like]: `%${params.email}%` }
-        };
-      }
-      
-      if (params.phoneNumber) {
-        setQuery.where = {
-          ...setQuery.where,
-          phoneNumber: { [Op.like]: `%${params.phoneNumber}%` }
-        };
-      }
-
-      if (params.createdAtFrom || params.createdAtTo) {
-        if (params.createdAtFrom && params.createdAtTo) {
-          setQuery.where = {
-            ...setQuery.where,
-            createdAt: { [Op.between]: [params.createdAtFrom, params.createdAtTo] }
-          };
-        } else if (params.createdAtFrom) {
-          setQuery.where = {
-            ...setQuery.where,
-            createdAt: { [Op.gte]: params.createdAtFrom }
-          };
-        } else if (params.createdAtTo) {
-          setQuery.where = {
-            ...setQuery.where,
-            createdAt: { [Op.lte]: params.createdAtTo }
-          };
-        }
-      }
-
-      if (params.limit && params.limit > 0) {
-        setQuery.limit = parseInt(params.limit);
-      }
-      
-      if (params.offset && params.offset > 0) {
-        setQuery.offset = parseInt(params.offset);
-      }
-
-      setQuery.order = getOrderBy(params.orderby);
-
-      const result = await User.findAndCountAll({
-        ...setQuery,
-        attributes: { exclude: ['password'] },
-        include: [
-          {
-            model: Farm,
-            as: 'farm',
-            attributes: ['id', 'farmCode',]
-          }
-        ]
-      });
-      
-      Logger.info(`UserDao.selectList: 사용자 목록 조회 완료 - 조회된 레코드 수: ${result.count}`);
-      return result;
-    } catch (err) {
-      if (err.message.includes('검색 파라미터가 필요합니다')) {
-        throw err;
-      }
-      Logger.error(`UserDao.selectList: 사용자 목록 조회 실패 - 에러: ${err.message}`);
-      throw new Error(`사용자 목록 조회에 실패했습니다: ${err.message}`);
-    }
-  }
-
-  static async selectInfo(params) {
-    try {
-      if (!params || !params.id) {
-        Logger.error('UserDao.selectInfo: 사용자 ID가 제공되지 않았습니다.');
-        throw new Error('사용자 ID가 필요합니다.');
-      }
-
-      if (typeof params.id !== 'number' || isNaN(params.id) || params.id <= 0) {
-        Logger.error(`UserDao.selectInfo: 유효하지 않은 사용자 ID: ${params.id}`);
-        throw new Error('유효한 사용자 ID가 필요합니다.');
-      }
-
-      const result = await User.findByPk(params.id, {
-        attributes: { exclude: ['password'] },
-        include: [
-          {
-            model: Farm,
-            as: 'farm',
-            attributes: ['id', 'farmCode']
-          }
-        ]
-      });
-      
-      if (result) {
-        Logger.info(`UserDao.selectInfo: 사용자 정보 조회 완료 - ID: ${params.id}, 사용자ID: ${result.userId}`);
-      } else {
-        Logger.info(`UserDao.selectInfo: 사용자를 찾을 수 없음 - ID: ${params.id}`);
-      }
-      
-      return result;
-    } catch (err) {
-      if (err.message.includes('사용자 ID가 필요합니다') || 
-          err.message.includes('유효한 사용자 ID가 필요합니다')) {
-        throw err;
-      }
-      Logger.error(`UserDao.selectInfo: 사용자 정보 조회 실패 - ID: ${params.id}, 에러: ${err.message}`);
-      throw new Error(`사용자 정보 조회에 실패했습니다: ${err.message}`);
-    }
-  }
-
-  static async selectUser(params) {
+  static async select(params) {
     try {
       if (!params || !params.userId) {
-        Logger.error('UserDao.selectUser: 사용자 ID가 제공되지 않았습니다.');
+        Logger.error('UserDao.select: 사용자 ID가 제공되지 않았습니다.');
         throw new Error('사용자 ID가 필요합니다.');
       }
 
       if (typeof params.userId !== 'string' || params.userId.trim() === '') {
-        Logger.error(`UserDao.selectUser: 유효하지 않은 사용자 ID: ${params.userId}`);
+        Logger.error(`UserDao.select: 유효하지 않은 사용자 ID: ${params.userId}`);
         throw new Error('유효한 사용자 ID가 필요합니다.');
       }
 
       const result = await User.findOne({
-        attributes: ['id', 'farmId', 'userId', 'password', 'name'],
+        attributes: ['id', 'farmId', 'userId', 'password', 'name', 'email', 'phoneNumber'],
         where: {
           userId: params.userId
         },
@@ -192,9 +61,9 @@ class UserDao {
       });
       
       if (result) {
-        Logger.info(`UserDao.selectUser: 사용자 조회 완료 - 사용자ID: ${params.userId}, ID: ${result.id}`);
+        Logger.info(`UserDao.select: 사용자 조회 완료 - 사용자ID: ${params.userId}, ID: ${result.id}`);
       } else {
-        Logger.info(`UserDao.selectUser: 사용자를 찾을 수 없음 - 사용자ID: ${params.userId}`);
+        Logger.info(`UserDao.select: 사용자를 찾을 수 없음 - 사용자ID: ${params.userId}`);
       }
       
       return result;
@@ -203,7 +72,7 @@ class UserDao {
           err.message.includes('유효한 사용자 ID가 필요합니다')) {
         throw err;
       }
-      Logger.error(`UserDao.selectUser: 사용자 조회 실패 - 사용자ID: ${params.userId}, 에러: ${err.message}`);
+      Logger.error(`UserDao.select: 사용자 조회 실패 - 사용자ID: ${params.userId}, 에러: ${err.message}`);
       throw new Error(`사용자 조회에 실패했습니다: ${err.message}`);
     }
   }
