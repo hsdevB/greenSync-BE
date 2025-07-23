@@ -10,7 +10,6 @@ class FarmService {
       let attempts = 0;
       const maxAttempts = 100;
 
-      // 중복되지 않는 팜코드 생성
       while (!isUnique && attempts < maxAttempts) {
         farmCode = FarmCode.createFarmCode();
         const exists = await FarmDao.checkFarmCodeExists(farmCode);
@@ -26,7 +25,6 @@ class FarmService {
         throw new Error('팜코드 생성 실패: 최대 시도 횟수 초과');
       }
 
-      // 생성된 팜코드로 농장 정보 저장
       const farmData = {
         farmCode,
         farmType: null,
@@ -35,9 +33,8 @@ class FarmService {
 
       const result = await FarmDao.insert(farmData);
       
-      Logger.info(`FarmService.generateFarmCode: 팜코드 생성 완료 - 농장ID: ${result.farmId}, 농장코드: ${result.farmCode}`);
+      Logger.info(`FarmService.generateFarmCode: 팜코드 생성 완료 - 농장코드: ${result.farmCode}`);
       return {
-        farmId: result.farmId,
         farmCode: result.farmCode,
       };
       

@@ -23,7 +23,7 @@ class LoginService {
         throw new Error('비밀번호가 필요합니다.');
       }
 
-      const userInfo = await UserDao.selectUser(params);
+      const userInfo = await UserDao.select(params);
 
       if (!userInfo) {
         Logger.error(`LoginService.login: 존재하지 않는 사용자 - userId: ${params.userId}`);
@@ -37,7 +37,6 @@ class LoginService {
         throw new Error('입력하신 비밀번호가 일치하지 않습니다.');
       }
 
-      // 농장 정보 조회
       const farmInfo = await FarmDao.selectById(userInfo.farmId);
       
       if (!farmInfo) {
