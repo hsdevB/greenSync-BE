@@ -7,6 +7,7 @@ import signupRouter from './signup.js';
 import weatherRouter from './weather.js';
 import sensorRouter from './sensor.js';
 import userRouter from './user.js';
+import predictRouter from './predict.js';
 
 const router = express.Router();
 
@@ -17,5 +18,6 @@ router.use('/signup', signupRouter);
 router.use('/weather', weatherRouter);
 router.use('/sensor', sensorRouter);
 router.use('/user', userRouter);
+router.use('/predict', predictRouter);
 
 export default router;
