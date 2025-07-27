@@ -1,337 +1,237 @@
 import Weather from '../models/weather.js';
 import { Op } from 'sequelize';
-import logger from '../utils/logger.js';
+import Logger from '../utils/logger.js';
 
 class WeatherDao {
     static async saveWeatherData(weatherData) {
         try {
             if (!weatherData || typeof weatherData !== 'object') {
-                logger.error('WeatherDao.saveWeatherData: 유효하지 않은 날씨 데이터입니다.');
+                Logger.error('WeatherDao.saveWeatherData: 유효하지 않은 날씨 데이터입니다. (데이터가 null 또는 객체가 아님)');
                 throw new Error('유효하지 않은 날씨 데이터입니다.');
             }
 
             const { cityName = '알 수 없는 도시', error, ...dbFields } = weatherData;
             
             if (error) {
-                logger.warn(`WeatherDao.saveWeatherData: 날씨 데이터 저장 생략 - 에러: ${error}, 도시: ${cityName}`);
+                Logger.warn('WeatherDao.saveWeatherData: 날씨 데이터 저장 생략 - 서비스 계층 에러: ' + error + ', 도시: ' + cityName);
                 return { success: false, error, cityName };
             }
 
             const cleanData = {
                 observationTime: dbFields.observationTime,
-                windDirection: this.toString(dbFields.windDirection),
+                windDirection: this.toNumber(dbFields.windDirection), 
                 windSpeed: this.toNumber(dbFields.windSpeed),
                 outsideTemp: this.toNumber(dbFields.outsideTemp),
                 insolation: this.toNumber(dbFields.insolation, 0.0),
+                dewPoint: this.toNumber(dbFields.dewPoint),
                 isDay: Boolean(dbFields.isDay),
                 isRain: Boolean(dbFields.isRain),
                 farmId: dbFields.farmId || null
             };
 
-            if (!cleanData.observationTime) {
-                logger.error('WeatherDao.saveWeatherData: 관측시간이 필요합니다.');
-                throw new Error('관측시간이 필요합니다.');
+            // 각 필드별 유효성 검사 (함수 호출 대신 인라인으로)
+            const errors = [];
+
+            if (typeof cleanData.observationTime !== 'string' || cleanData.observationTime.length !== 12 || !/^\d{12}$/.test(cleanData.observationTime)) {
+                errors.push('observationTime은 YYYYMMDDHHMM 형식의 12자리 숫자 문자열이어야 합니다.');
             }
 
-            const inserted = await Weather.create(cleanData);
-            logger.info(`WeatherDao.saveWeatherData: 날씨 데이터 저장 완료 - ID: ${inserted.id}, 관측시간: ${cleanData.observationTime}, 도시: ${cityName}`);
-            return { 
-                success: true, 
-                insertedId: inserted.id, 
-                cityName,
-                data: {
-                    observationTime: cleanData.observationTime,
-                    isDay: cleanData.isDay,
-                    isRain: cleanData.isRain,
-                    outsideTemp: cleanData.outsideTemp
+            if (cleanData.windDirection !== null && cleanData.windDirection !== undefined) {
+                if (typeof cleanData.windDirection !== 'number' || isNaN(cleanData.windDirection) || cleanData.windDirection < 0 || cleanData.windDirection > 360) {
+                    errors.push('풍향(windDirection)은 0~360 사이의 숫자여야 합니다.');
                 }
-            };
-        } catch (err) {
-            if (err.message.includes('유효하지 않은 날씨 데이터') || 
-                err.message.includes('관측시간이 필요합니다')) {
-                throw err;
             }
-            logger.error(`WeatherDao.saveWeatherData: 날씨 데이터 저장 실패 - 에러: ${err.message}`);
-            throw new Error(`날씨 데이터 저장에 실패했습니다: ${err.message}`);
+
+            if (cleanData.windSpeed !== null && cleanData.windSpeed !== undefined) {
+                if (typeof cleanData.windSpeed !== 'number' || isNaN(cleanData.windSpeed) || cleanData.windSpeed < 0) {
+                    errors.push('풍속(windSpeed)은 0 이상의 숫자여야 합니다.');
+                }
+            }
+
+            if (cleanData.outsideTemp !== null && cleanData.outsideTemp !== undefined) {
+                if (typeof cleanData.outsideTemp !== 'number' || isNaN(cleanData.outsideTemp) || cleanData.outsideTemp < -50 || cleanData.outsideTemp > 60) {
+                    errors.push('외부온도(outsideTemp)는 -50°C ~ 60°C 사이의 숫자여야 합니다.');
+                }
+            }
+
+            if (cleanData.insolation !== null && cleanData.insolation !== undefined) {
+                if (typeof cleanData.insolation !== 'number' || isNaN(cleanData.insolation) || cleanData.insolation < 0) {
+                    errors.push('일사량(insolation)은 0 이상의 숫자여야 합니다.');
+                }
+            }
+
+            if (cleanData.dewPoint !== null && cleanData.dewPoint !== undefined) {
+                if (typeof cleanData.dewPoint !== 'number' || isNaN(cleanData.dewPoint)) {
+                    errors.push('이슬점 온도(dewPoint)는 숫자여야 합니다.');
+                }
+            }
+
+            if (typeof cleanData.isDay !== 'boolean') {
+                errors.push('밤낮 여부(isDay)는 true 또는 false 값이어야 합니다.');
+            }
+
+            if (typeof cleanData.isRain !== 'boolean') {
+                errors.push('강수 여부(isRain)는 true 또는 false 값이어야 합니다.');
+            }
+
+            if (cleanData.farmId !== null && cleanData.farmId !== undefined) {
+                if (typeof cleanData.farmId !== 'number' || !Number.isInteger(cleanData.farmId) || cleanData.farmId <= 0) {
+                    errors.push('농장 ID(farmId)는 0보다 큰 정수여야 합니다.');
+                }
+            }
+
+            if (errors.length > 0) {
+                Logger.error('WeatherDao.saveWeatherData: 저장 전 데이터 유효성 검사 실패 - ' + errors.join(', '));
+                throw new Error('날씨 데이터 유효성 검사 실패: ' + errors.join(', '));
+            }
+
+            const weather = await Weather.create(cleanData);
+            return { success: true, weatherId: weather.id };
+
+        } catch (err) {
+            Logger.error('WeatherDao.saveWeatherData: 날씨 데이터 저장 중 오류 발생 - ' + err.message);
+            return { success: false, error: err.message };
         }
     }
 
-    static async getWeatherData(params = {}) {
+    static toNumber(value, defaultValue = NaN) {
+        if (value === null || value === undefined || value === '') {
+            return defaultValue;
+        }
+        const num = parseFloat(value);
+        return isNaN(num) ? defaultValue : num;
+    }
+
+    static async getWeatherData(weatherId) {
         try {
-            if (!params || typeof params !== 'object') {
-                logger.error('WeatherDao.getWeatherData: 검색 파라미터가 제공되지 않았습니다.');
-                throw new Error('검색 파라미터가 필요합니다.');
+            if (isNaN(weatherId) || parseInt(weatherId) <= 0) {
+                Logger.error('WeatherDao.getWeatherData: 유효하지 않은 weatherId - ' + weatherId);
+                throw new Error('유효한 날씨 ID가 필요합니다.');
             }
-
-            // limit, offset 유효성 검사
-            if (params.limit !== undefined && (typeof params.limit !== 'number' || params.limit < 0)) {
-                logger.error(`WeatherDao.getWeatherData: 유효하지 않은 limit 값: ${params.limit}`);
-                throw new Error('limit은 0 이상의 숫자여야 합니다.');
+            const weather = await Weather.findByPk(weatherId);
+            if (!weather) {
+                Logger.warn('WeatherDao.getWeatherData: 날씨 데이터를 찾을 수 없습니다 - ID: ' + weatherId);
+            } else {
+                Logger.info('WeatherDao.getWeatherData: 날씨 데이터 조회 성공 - ID: ' + weatherId);
             }
-
-            if (params.offset !== undefined && (typeof params.offset !== 'number' || params.offset < 0)) {
-                logger.error(`WeatherDao.getWeatherData: 유효하지 않은 offset 값: ${params.offset}`);
-                throw new Error('offset은 0 이상의 숫자여야 합니다.');
-            }
-
-            const whereClause = {};
-            
-            if (params.observationTime) {
-                whereClause.observationTime = params.observationTime;
-            }
-            
-            if (params.isDay !== undefined) {
-                whereClause.isDay = Boolean(params.isDay);
-            }
-            
-            if (params.isRain !== undefined) {
-                whereClause.isRain = Boolean(params.isRain);
-            }
-
-            if (params.minTemp !== undefined) {
-                whereClause.outsideTemp = { ...whereClause.outsideTemp, [Op.gte]: params.minTemp };
-            }
-            
-            if (params.maxTemp !== undefined) {
-                whereClause.outsideTemp = { ...whereClause.outsideTemp, [Op.lte]: params.maxTemp };
-            }
-
-            if (params.startDate && params.endDate) {
-                whereClause.observationTime = {
-                    [Op.between]: [params.startDate, params.endDate]
-                };
-            }
-
-            const result = await Weather.findAll({
-                where: whereClause,
-                order: [['observationTime', 'DESC']],
-                limit: params.limit || 100,
-                offset: params.offset || 0,
-                include: params.includeFarm ? [{
-                    model: Weather.sequelize.models.Farm,
-                    as: 'farm',
-                    attributes: ['id', 'name', 'location']
-                }] : []
-            });
-
-            logger.info(`WeatherDao.getWeatherData: 날씨 데이터 조회 완료 - 조회된 레코드 수: ${result.length}`);
-            return result;
-            
+            return weather ? weather.toJSON() : null;
         } catch (err) {
-            if (err.message.includes('검색 파라미터가 필요합니다') || 
-                err.message.includes('limit은 0 이상의 숫자여야 합니다') || 
-                err.message.includes('offset은 0 이상의 숫자여야 합니다')) {
-                throw err;
-            }
-            logger.error(`WeatherDao.getWeatherData: 날씨 데이터 조회 실패 - 에러: ${err.message}`);
-            throw new Error(`날씨 데이터 조회에 실패했습니다: ${err.message}`);
+            Logger.error('WeatherDao.getWeatherData: 날씨 데이터 조회 중 오류 발생 - ID: ' + weatherId + ', 에러: ' + err.message);
+            throw err;
         }
     }
 
     static async getLatestWeatherData(farmId = null) {
         try {
-            if (farmId !== null && (typeof farmId !== 'number' || isNaN(farmId) || farmId <= 0)) {
-                logger.error(`WeatherDao.getLatestWeatherData: 유효하지 않은 농장ID: ${farmId}`);
-                throw new Error('유효한 농장ID가 필요합니다.');
-            }
-
-            const whereClause = {};
-            if (farmId) {
-                whereClause.farmId = farmId;
-            }
-
-            const result = await Weather.findOne({
-                where: whereClause,
+            const queryOptions = {
                 order: [['observationTime', 'DESC']],
-                include: [{
-                    model: Weather.sequelize.models.Farm,
-                    as: 'farm',
-                    attributes: ['id', 'name', 'location'],
-                    required: false
-                }]
-            });
-
-            if (result) {
-                logger.info(`WeatherDao.getLatestWeatherData: 최근 날씨 데이터 조회 완료 - 관측시간: ${result.observationTime}, 농장ID: ${farmId || '전체'}`);
-            } else {
-                logger.info(`WeatherDao.getLatestWeatherData: 최근 날씨 데이터를 찾을 수 없음 - 농장ID: ${farmId || '전체'}`);
-            }
-
-            return result;
-            
-        } catch (err) {
-            if (err.message.includes('유효한 농장ID가 필요합니다')) {
-                throw err;
-            }
-            logger.error(`WeatherDao.getLatestWeatherData: 최근 날씨 데이터 조회 실패 - 농장ID: ${farmId}, 에러: ${err.message}`);
-            throw new Error(`최근 날씨 데이터 조회에 실패했습니다: ${err.message}`);
-        }
-    }
-
-    static async getWeatherStats(farmId, startDate, endDate) {
-        try {
-            if (farmId !== null && farmId !== undefined && (typeof farmId !== 'number' || isNaN(farmId) || farmId <= 0)) {
-                logger.error(`WeatherDao.getWeatherStats: 유효하지 않은 농장ID: ${farmId}`);
-                throw new Error('유효한 농장ID가 필요합니다.');
-            }
-
-            if (startDate && endDate && new Date(startDate) > new Date(endDate)) {
-                logger.error(`WeatherDao.getWeatherStats: 시작일이 종료일보다 늦습니다 - 시작일: ${startDate}, 종료일: ${endDate}`);
-                throw new Error('시작일은 종료일보다 이전이어야 합니다.');
-            }
-
-            const { fn, col } = Weather.sequelize;
-            
-            const whereClause = {};
-            if (farmId) whereClause.farmId = farmId;
-            if (startDate && endDate) {
-                whereClause.observationTime = {
-                    [Op.between]: [startDate, endDate]
-                };
-            }
-
-            const stats = await Weather.findOne({
-                where: whereClause,
-                attributes: [
-                    [fn('AVG', col('outsideTemp')), 'avgTemp'],
-                    [fn('MAX', col('outsideTemp')), 'maxTemp'],
-                    [fn('MIN', col('outsideTemp')), 'minTemp'],
-                    [fn('AVG', col('windSpeed')), 'avgWindSpeed'],
-                    [fn('MAX', col('windSpeed')), 'maxWindSpeed'],
-                    [fn('SUM', col('insolation')), 'totalInsolation'],
-                    [fn('COUNT', col('id')), 'totalRecords']
-                ],
-                raw: true
-            });
-
-            const dayNightStats = await Weather.findAll({
-                where: whereClause,
-                attributes: [
-                    'isDay',
-                    [fn('COUNT', col('id')), 'count']
-                ],
-                group: ['isDay'],
-                raw: true
-            });
-
-            const rainStats = await Weather.findAll({
-                where: whereClause,
-                attributes: [
-                    'isRain',
-                    [fn('COUNT', col('id')), 'count']
-                ],
-                group: ['isRain'],
-                raw: true
-            });
-
-            logger.info(`WeatherDao.getWeatherStats: 날씨 통계 조회 완료 - 농장ID: ${farmId || '전체'}, 기간: ${startDate || '전체'} ~ ${endDate || '전체'}`);
-            return {
-                temperature: stats,
-                dayNight: dayNightStats,
-                rain: rainStats
+                limit: 1
             };
-            
-        } catch (err) {
-            if (err.message.includes('유효한 농장ID가 필요합니다') || 
-                err.message.includes('시작일은 종료일보다 이전이어야 합니다')) {
-                throw err;
+
+            if (farmId !== null && (!isNaN(farmId) && parseInt(farmId) > 0)) {
+                queryOptions.where = { farmId: parseInt(farmId) };
+                Logger.info('WeatherDao.getLatestWeatherData: 특정 농장(' + farmId + ')의 최신 날씨 데이터 조회');
+            } else {
+                Logger.info('WeatherDao.getLatestWeatherData: 전체 농장의 최신 날씨 데이터 조회');
             }
-            logger.error(`WeatherDao.getWeatherStats: 날씨 통계 조회 실패 - 농장ID: ${farmId}, 에러: ${err.message}`);
-            throw new Error(`날씨 통계 조회에 실패했습니다: ${err.message}`);
+            
+            const weather = await Weather.findOne(queryOptions);
+            if (!weather) {
+                Logger.warn('WeatherDao.getLatestWeatherData: 최신 날씨 데이터를 찾을 수 없습니다.');
+            } else {
+                Logger.info('WeatherDao.getLatestWeatherData: 최신 날씨 데이터 조회 성공 - 시간: ' + weather.observationTime);
+            }
+            return weather ? weather.toJSON() : null;
+        } catch (err) {
+            Logger.error('WeatherDao.getLatestWeatherData: 최신 날씨 데이터 조회 중 오류 발생 - 에러: ' + err.message);
+            throw err;
         }
     }
 
-    static async deleteWeatherData(conditions) {
+    static async getWeatherStats(farmId = null, period = '24h') {
         try {
-            if (!conditions || typeof conditions !== 'object') {
-                logger.error('WeatherDao.deleteWeatherData: 삭제 조건이 제공되지 않았습니다.');
-                throw new Error('삭제 조건이 필요합니다.');
+            const now = new Date();
+            let startDate;
+
+            switch (period) {
+                case '24h':
+                    startDate = new Date(now.getTime() - 24 * 60 * 60 * 1000);
+                    break;
+                case '7d':
+                    startDate = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+                    break;
+                case '30d':
+                    startDate = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
+                    break;
+                default:
+                    Logger.warn('WeatherDao.getWeatherStats: 지원하지 않는 기간 - ' + period + '. 기본값 \'24h\' 사용.');
+                    startDate = new Date(now.getTime() - 24 * 60 * 60 * 1000);
             }
 
-            const deletedCount = await Weather.destroy({
-                where: conditions
+            const startObservationTime = startDate.getFullYear() +
+                String(startDate.getMonth() + 1).padStart(2, '0') +
+                String(startDate.getDate()).padStart(2, '0') +
+                String(startDate.getHours()).padStart(2, '0') +
+                String(startDate.getMinutes()).padStart(2, '0');
+
+            const whereClause = {
+                observationTime: {
+                    [Op.gte]: startObservationTime
+                }
+            };
+
+            if (farmId !== null && (!isNaN(farmId) && parseInt(farmId) > 0)) {
+                whereClause.farmId = parseInt(farmId);
+                Logger.info('WeatherDao.getWeatherStats: 특정 농장(' + farmId + ')의 ' + period + ' 날씨 통계 조회');
+            } else {
+                Logger.info('WeatherDao.getWeatherStats: 전체 농장의 ' + period + ' 날씨 통계 조회');
+            }
+
+            const stats = await Weather.findAll({
+                where: whereClause,
+                attributes: [
+                    [Weather.sequelize.fn('AVG', Weather.sequelize.col('outsideTemp')), 'avgTemp'],
+                    [Weather.sequelize.fn('MIN', Weather.sequelize.col('outsideTemp')), 'minTemp'],
+                    [Weather.sequelize.fn('MAX', Weather.sequelize.col('outsideTemp')), 'maxTemp'],
+                    [Weather.sequelize.fn('AVG', Weather.sequelize.col('windSpeed')), 'avgWindSpeed'],
+                    [Weather.sequelize.fn('SUM', Weather.sequelize.col('insolation')), 'totalInsolation'],
+                    [Weather.sequelize.fn('AVG', Weather.sequelize.col('dewPoint')), 'avgDewPoint'],
+                    [Weather.sequelize.fn('SUM', Weather.sequelize.literal('CASE WHEN "isRain" = TRUE THEN 1 ELSE 0 END')), 'rainCount'],
+                    [Weather.sequelize.fn('COUNT', Weather.sequelize.col('id')), 'recordCount']
+                ],
+                raw: true
             });
 
-            logger.info(`WeatherDao.deleteWeatherData: 날씨 데이터 삭제 완료 - 삭제된 레코드 수: ${deletedCount}`);
-            return deletedCount;
-            
-        } catch (err) {
-            if (err.message.includes('삭제 조건이 필요합니다')) {
-                throw err;
+            if (!stats || stats.length === 0 || stats[0].recordCount === null) {
+                Logger.warn(period + ' 동안의 날씨 통계를 찾을 수 없습니다.');
+                return null;
             }
-            logger.error(`WeatherDao.deleteWeatherData: 날씨 데이터 삭제 실패 - 에러: ${err.message}`);
-            throw new Error(`날씨 데이터 삭제에 실패했습니다: ${err.message}`);
+
+            return stats[0];
+        } catch (err) {
+            Logger.error('WeatherDao.getWeatherStats: 날씨 통계 조회 중 오류 발생 - 에러: ' + err.message);
+            throw err;
         }
     }
 
-    static async toNumber(value, defaultValue = 0) {
-        const num = Number(value);
-        return isNaN(num) ? defaultValue : num;
-    }
-
-    static async toBoolean(value) {
-        return Boolean(value);
-    }
-    
-    static async toString(value) {
-      return value === null || value === undefined ? null : String(value);
-    }
-
-    static async validateWeatherData(data) {
+    static async deleteWeatherData(weatherId) {
         try {
-            if (!data || typeof data !== 'object') {
-                logger.error('WeatherDao.validateWeatherData: 검증할 날씨 데이터가 제공되지 않았습니다.');
-                throw new Error('검증할 날씨 데이터가 필요합니다.');
+            if (isNaN(weatherId) || parseInt(weatherId) <= 0) {
+                Logger.error('WeatherDao.deleteWeatherData: 유효하지 않은 weatherId - ' + weatherId);
+                throw new Error('유효한 날씨 ID가 필요합니다.');
             }
-
-            const errors = [];
-            if (!data.observationTime) {
-                errors.push('observationTime은 필수 필드입니다.');
-            } else if (!/^\d{12}$/.test(data.observationTime)) {
-                errors.push('observationTime은 YYYYMMDDHHMM 형식이어야 합니다.');
-            }
-
-            if (typeof data.isDay !== 'boolean') {
-                errors.push('isDay는 Boolean 값이어야 합니다.');
-            }
-
-            if (typeof data.isRain !== 'boolean') {
-                errors.push('isRain는 Boolean 값이어야 합니다.');
-            }
-
-            if (data.outsideTemp !== undefined && (data.outsideTemp < -50 || data.outsideTemp > 60)) {
-                errors.push('온도 값이 유효하지 않습니다. (-50°C ~ 60°C)');
-            }
-
-            if (data.windSpeed !== undefined && data.windSpeed < 0) {
-                errors.push('풍속 값이 유효하지 않습니다. (0 이상)');
-            }
-
-            if (data.windDirection !== undefined && (data.windDirection < 0 || data.windDirection > 360)) {
-                errors.push('풍향 값이 유효하지 않습니다. (0° ~ 360°)');
-            }
-
-            if (data.insolation !== undefined && data.insolation < 0) {
-                errors.push('일사량 값이 유효하지 않습니다. (0 이상)');
-            }
-
-            const isValid = errors.length === 0;
-            if (!isValid) {
-                logger.warn(`WeatherDao.validateWeatherData: 날씨 데이터 검증 실패 - 에러: ${errors.join(', ')}`);
+            const deletedRows = await Weather.destroy({
+                where: { id: weatherId }
+            });
+            if (deletedRows > 0) {
+                return true;
             } else {
-                logger.info('WeatherDao.validateWeatherData: 날씨 데이터 검증 완료');
+                Logger.warn('WeatherDao.deleteWeatherData: 삭제할 날씨 데이터를 찾을 수 없습니다 - ID: ' + weatherId);
+                return false;
             }
-
-            return {
-                isValid,
-                errors
-            };
         } catch (err) {
-            if (err.message.includes('검증할 날씨 데이터가 필요합니다')) {
-                throw err;
-            }
-            logger.error(`WeatherDao.validateWeatherData: 날씨 데이터 검증 중 오류 발생 - 에러: ${err.message}`);
-            throw new Error(`날씨 데이터 검증 중 오류가 발생했습니다: ${err.message}`);
+            Logger.error('WeatherDao.deleteWeatherData: 날씨 데이터 삭제 중 오류 발생 - ID: ' + weatherId + ', 에러: ' + err.message);
+            throw err;
         }
     }
 }

@@ -10,7 +10,7 @@ class Weather extends Model {
                     comment: '관측시간 (YYYYMMDDHHMM)'
                 },
                 windDirection: {
-                    type: DataTypes.STRING(20),
+                    type: DataTypes.FLOAT,
                     allowNull: true,
                     comment: '풍향'
                 },
