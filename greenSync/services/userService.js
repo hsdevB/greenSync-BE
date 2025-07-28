@@ -4,6 +4,7 @@ import HashUtil from '../utils/hashUtil.js';
 import Logger from '../utils/logger.js';
 
 class UserService {
+  // static async signup(params, uploadedFile = null) {
   static async signup(params) {
     try {
       if (!params || typeof params !== 'object') {
@@ -63,6 +64,7 @@ class UserService {
         name: params.name,
         email: params.email || null,
         phoneNumber: params.phoneNumber || null,
+        // imgPath: uploadedFile ? `/${uploadedFile.filename}` : null,
       };
 
       const result = await UserDao.insert(userData);
@@ -125,6 +127,7 @@ class UserService {
           email: user.email,
           phoneNumber: user.phoneNumber,
           farmCode: farm.farmCode,
+          // profileImage: user.imgPath ? `/uploads/profiles${user.imgPath}` : '/images/default-profile.png'
         }
       };
     } catch (err) {
@@ -138,6 +141,7 @@ class UserService {
     }
   }
 
+  // static async updateUserProfile(userId, updateData, uploadedFile = null) {
   static async updateUserProfile(userId, updateData) {
     try {
       if (!userId || typeof userId !== 'string' || userId.trim() === '') {
@@ -170,6 +174,11 @@ class UserService {
           filteredData[field] = updateData[field];
         }
       }
+
+      // 이미지 파일이 업로드된 경우
+      // if (uploadedFile) {
+      //   filteredData.imgPath = `/${uploadedFile.filename}`;
+      // }
 
       if (updateData.password) {
         if (typeof updateData.password !== 'string' || updateData.password.trim() === '') {

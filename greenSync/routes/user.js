@@ -2,6 +2,7 @@ import express from 'express';
 import UserService from '../services/userService.js';
 import Logger from '../utils/logger.js';
 import AuthMiddleware from '../utils/authMiddleware.js';
+// import { upload, handleUploadError } from '../utils/uploadMiddleware.js';
 
 const userRouter = express.Router();
 
@@ -43,6 +44,7 @@ userRouter.get('/profile', AuthMiddleware.isLoggedIn, async (req, res) => {
   }
 });
 
+// userRouter.put('/profile', AuthMiddleware.isLoggedIn, upload.single('single'), handleUploadError, async (req, res) => {
 userRouter.put('/profile', AuthMiddleware.isLoggedIn, async (req, res) => {
   try {
     const userId = req.loginUser.userId;
@@ -62,6 +64,7 @@ userRouter.put('/profile', AuthMiddleware.isLoggedIn, async (req, res) => {
       });
     }
 
+    // const result = await UserService.updateUserProfile(userId, updateData, req.file);
     const result = await UserService.updateUserProfile(userId, updateData);
     
     res.status(200).json(result);

@@ -18,6 +18,10 @@ const PORT = process.env.PORT || 3000;
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
+// Static file serving
+// app.use('/images', express.static('public/images'));
+// app.use('/uploads', express.static('public/uploads'));
+
 // API Routes
 app.use('/', Router);
 
@@ -31,7 +35,7 @@ app.get('/health', (req, res) => {
 });
 
 // Error Handler
-app.use((err, req, res, next) => {
+app.use((err, req, res) => {
   Logger.error(`Error: ${err.message}`);
   res.status(500).json({
     success: false,
