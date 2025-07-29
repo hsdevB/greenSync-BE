@@ -1,9 +1,11 @@
 import express from 'express';
 import UserService from '../services/userService.js';
 import Logger from '../utils/logger.js';
+// import { upload, handleUploadError } from '../utils/uploadMiddleware.js';
 
 const signupRouter = express.Router();
 
+// signupRouter.post('/', upload.single('single'), handleUploadError, async (req, res) => {
 signupRouter.post('/', async (req, res) => {
     try {
         if (!req.body || typeof req.body !== 'object') {
@@ -103,7 +105,7 @@ signupRouter.post('/', async (req, res) => {
 
         Logger.info(`signupRouter.signup: 회원가입 요청 - 사용자ID: ${params.userId}, 이름: ${params.name}, 농장코드: ${params.farmCode}`);
 
-        const result = await UserService.signup(params);
+        const result = await UserService.signup(params, req.file);
 
         Logger.info(`signupRouter.signup: 회원가입 완료 - 사용자ID: ${params.userId}, ID: ${result.data.id}`);
         res.status(201).json({

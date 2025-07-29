@@ -294,4 +294,94 @@ sensorRouter.get('/illuminance/code/:farmCode', async (req, res) => {
   }
 });
 
+sensorRouter.get('/deviceStatus/:farmCode', async (req, res) => {
+  try {
+    const { farmCode } = req.params;
+
+    if (!farmCode || typeof farmCode !== 'string' || farmCode.trim() === '') {
+      Logger.error(`sensorRouter.deviceStatus.code: 유효하지 않은 농장코드 - farmCode: ${farmCode}`);
+      return res.status(400).json({
+        success: false,
+        message: '유효한 농장코드가 필요합니다.'
+      });
+    }
+
+    const statusData = await sensorDataService.getDeviceStatusByFarmCode(farmCode);
+    Logger.info(`sensorRouter.deviceStatus.code: 장치 상태 조회 완료 - 농장코드: ${farmCode}`);
+
+    res.status(200).json({
+      success: true,
+      message: '장치 상태 조회 성공',
+      data: statusData
+    });
+  } catch (error) {
+    Logger.error(`sensorRouter.deviceStatus.code: 장치 상태 조회 실패 - 농장코드: ${req.params.farmCode}, 에러: ${error.message}`);
+    res.status(500).json({
+      success: false,
+      message: '장치 상태 조회에 실패했습니다.'
+    });
+  }
+});
+
+sensorRouter.put('/deviceStatus/:farmCode', async (req, res) => {
+  try {
+    const { farmCode } = req.params;
+    const { controlTemperature, controlHumidity, fan, leds } = req.body;
+
+    if (!farmCode || typeof farmCode !== 'string' || farmCode.trim() === '') {
+      Logger.error(`sensorRouter.deviceStatus.control: 유효하지 않은 농장코드 - farmCode: ${farmCode}`);
+      return res.status(400).json({
+        success: false,
+        message: '유효한 농장코드가 필요합니다.'
+      });
+    }
+
+    // 최소한 하나의 제어 데이터는 제공되어야 함
+    if (controlTemperature === undefined && controlHumidity === undefined && 
+        fan === undefined && leds === undefined) {
+      Logger.error(`sensorRouter.deviceStatus.control: 최소한 하나의 제어 데이터가 제공되어야 합니다.`);
+      return res.status(400).json({
+        success: false,
+        message: '최소한 하나의 제어 데이터가 제공되어야 합니다.'
+      });
+    }
+
+    // LED 배열 유효성 검사
+    if (leds !== undefined) {
+      if (!Array.isArray(leds) || leds.length !== 4 || !leds.every(val => typeof val === 'boolean')) {
+        Logger.error(`sensorRouter.deviceStatus.control: leds는 4개의 불리언 값으로 구성된 배열이어야 합니다.`);
+        return res.status(400).json({
+          success: false,
+          message: 'leds는 4개의 불리언 값으로 구성된 배열이어야 합니다.'
+        });
+      }
+    }
+
+    // fan 유효성 검사
+    if (fan !== undefined && typeof fan !== 'boolean') {
+      Logger.error(`sensorRouter.deviceStatus.control: fan 값은 true 또는 false여야 합니다.`);
+      return res.status(400).json({
+        success: false,
+        message: 'fan 값은 true 또는 false여야 합니다.'
+      });
+    }
+
+    const result = await sensorDataService.updateDeviceControl(farmCode, controlTemperature, controlHumidity, fan, leds);
+    Logger.info(`sensorRouter.deviceStatus.control: 장치 제어 설정 업데이트 완료 - 농장코드: ${farmCode}`);
+
+    res.status(200).json({
+      success: true,
+      message: '장치 제어 설정 업데이트 성공',
+      data: result
+    });
+  } catch (error) {
+    Logger.error(`sensorRouter.deviceStatus.control: 장치 제어 설정 업데이트 실패 - 농장코드: ${req.params.farmCode}, 에러: ${error.message}`);
+    res.status(500).json({
+      success: false,
+      message: '장치 제어 설정 업데이트에 실패했습니다.'
+    });
+  }
+});
+
+
 export default sensorRouter;

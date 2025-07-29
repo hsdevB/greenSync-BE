@@ -32,11 +32,11 @@ class User extends Model {
                     allowNull: true,
                     comment: '휴대전화번호'
                 },
-                imgPath :{
-                    type: DataTypes.STRING(255),
-                    allowNull: true,
-                    comment: '프로필 이미지파일 경로'
-                }
+                // imgPath :{
+                //     type: DataTypes.STRING(255),
+                //     allowNull: true,
+                //     comment: '프로필 이미지파일 경로'
+                // }
             },
             {
                 sequelize,

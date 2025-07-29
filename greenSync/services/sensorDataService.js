@@ -3,7 +3,9 @@ import humidityDao from '../dao/humidityDao.js';
 import nutrientDao from '../dao/nutrientDao.js';
 import carbonDioxideDao from '../dao/carbonDioxideDao.js';
 import illuminanceDao from '../dao/illuminanceDao.js';
+import deviceStatusDao from '../dao/deviceStatusDao.js';
 import Logger from '../utils/logger.js';
+
 
 const SENSOR_RANGES = {
   temperature: { min: -50, max: 100 },
@@ -117,6 +119,37 @@ class SensorDataService {
 
     } catch (error) {
       Logger.error(`sensorDataService.saveSensorData.error: ${error.message}`);
+      throw error;
+    }
+  }
+
+  static async saveDeviceStatus(data, farmCode) {
+    try {
+      if (!farmCode || typeof farmCode !== 'string' || farmCode.trim() === '') {
+        throw new Error('농장코드는 필수이며 유효한 문자열이어야 합니다.');
+      }
+
+      if (!data || typeof data !== 'object') {
+        throw new Error('장치 상태 데이터는 유효한 객체여야 합니다.');
+      }
+
+      const { fan, leds } = data;
+
+      if (typeof fan !== 'boolean') {
+        throw new Error('fan 값은 true 또는 false여야 합니다.');
+      }
+
+      if (!Array.isArray(leds) || leds.length !== 4 || !leds.every(val => typeof val === 'boolean')) {
+        throw new Error('leds는 4개의 불리언 값으로 구성된 배열이어야 합니다.');
+      }
+
+      const result = await deviceStatusDao.updateDeviceStatus(farmCode, fan, leds);
+
+      Logger.info(`sensorDataService.saveDeviceStatus.response result: ${JSON.stringify(result)}`);
+      return result;
+
+    } catch (error) {
+      Logger.error(`sensorDataService.saveDeviceStatus.error: ${error.message}`);
       throw error;
     }
   }
@@ -267,6 +300,89 @@ class SensorDataService {
       return result;
     } catch (error) {
       Logger.error(`sensorDataService.getIlluminanceByFarmCode.error: ${error.message}`);
+      throw error;
+    }
+  }
+
+  static async getDeviceStatusByFarmCode(farmCode) {
+    try {
+      if (!farmCode || typeof farmCode !== 'string' || farmCode.trim() === '') {
+        throw new Error('농장코드는 필수이며 유효한 문자열이어야 합니다.');
+      }
+
+      const result = await deviceStatusDao.getLatestStatusByFarmCode(farmCode);
+      Logger.info(`sensorDataService.getDeviceStatusByFarmCode.response result: ${JSON.stringify(result)}`);
+      return result;
+    } catch (error) {
+      Logger.error(`sensorDataService.getDeviceStatusByFarmCode.error: ${error.message}`);
+      throw error;
+    }
+  }
+
+  static async updateControlSettings(farmCode, controlTemperature, controlHumidity) {
+    try {
+      if (!farmCode || typeof farmCode !== 'string' || farmCode.trim() === '') {
+        throw new Error('농장코드는 필수이며 유효한 문자열이어야 합니다.');
+      }
+
+      if (controlTemperature !== null && controlTemperature !== undefined) {
+        if (typeof controlTemperature !== 'number' || isNaN(controlTemperature)) {
+          throw new Error('제어온도는 유효한 숫자여야 합니다.');
+        }
+      }
+
+      if (controlHumidity !== null && controlHumidity !== undefined) {
+        if (typeof controlHumidity !== 'number' || isNaN(controlHumidity)) {
+          throw new Error('제어습도는 유효한 숫자여야 합니다.');
+        }
+      }
+
+      const result = await deviceStatusDao.updateControlSettings(farmCode, controlTemperature, controlHumidity);
+      Logger.info(`sensorDataService.updateControlSettings.response result: ${JSON.stringify(result)}`);
+      return result;
+    } catch (error) {
+      Logger.error(`sensorDataService.updateControlSettings.error: ${error.message}`);
+      throw error;
+    }
+  }
+
+  static async updateDeviceControl(farmCode, controlTemperature, controlHumidity, fan, leds) {
+    try {
+      if (!farmCode || typeof farmCode !== 'string' || farmCode.trim() === '') {
+        throw new Error('농장코드는 필수이며 유효한 문자열이어야 합니다.');
+      }
+
+      // 제어온도 유효성 검사
+      if (controlTemperature !== null && controlTemperature !== undefined) {
+        if (typeof controlTemperature !== 'number' || isNaN(controlTemperature)) {
+          throw new Error('제어온도는 유효한 숫자여야 합니다.');
+        }
+      }
+
+      // 제어습도 유효성 검사
+      if (controlHumidity !== null && controlHumidity !== undefined) {
+        if (typeof controlHumidity !== 'number' || isNaN(controlHumidity)) {
+          throw new Error('제어습도는 유효한 숫자여야 합니다.');
+        }
+      }
+
+      // fan 유효성 검사
+      if (fan !== null && fan !== undefined && typeof fan !== 'boolean') {
+        throw new Error('fan 값은 true 또는 false여야 합니다.');
+      }
+
+      // LED 배열 유효성 검사
+      if (leds !== null && leds !== undefined) {
+        if (!Array.isArray(leds) || leds.length !== 4 || !leds.every(val => typeof val === 'boolean')) {
+          throw new Error('leds는 4개의 불리언 값으로 구성된 배열이어야 합니다.');
+        }
+      }
+
+      const result = await deviceStatusDao.updateDeviceControl(farmCode, controlTemperature, controlHumidity, fan, leds);
+      Logger.info(`sensorDataService.updateDeviceControl.response result: ${JSON.stringify(result)}`);
+      return result;
+    } catch (error) {
+      Logger.error(`sensorDataService.updateDeviceControl.error: ${error.message}`);
       throw error;
     }
   }

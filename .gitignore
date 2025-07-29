@@ -145,3 +145,6 @@ bruno*
 
 # Raspberry Pi Code
 sensor_gateway.js
+
+# Arduino Code
+greenSync/arduino.c

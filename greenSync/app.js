@@ -18,6 +18,10 @@ const PORT = process.env.PORT || 3000;
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
+// Static file serving
+// app.use('/images', express.static('public/images'));
+// app.use('/uploads', express.static('public/uploads'));
+
 // API Routes
 app.use('/', Router);
 
@@ -33,6 +37,12 @@ app.get('/health', (req, res) => {
 // Error Handler
 app.use((err, req, res, next) => {
   Logger.error(`Error: ${err.message}`);
+  
+  // 이미 응답이 전송되었는지 확인
+  if (res.headersSent) {
+    return next(err);
+  }
+  
   res.status(500).json({
     success: false,
     message: err.message
@@ -50,7 +60,7 @@ app.use('*', (req, res) => {
 models.sequelize.authenticate()
   .then(() => {
     Logger.info('데이터베이스 연결 성공');
-    return models.sequelize.sync({ alter : true });
+    return models.sequelize.sync();
   })
   .then(() => {
     

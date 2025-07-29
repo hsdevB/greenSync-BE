@@ -69,6 +69,11 @@ class Farm extends Model {
             sourceKey: 'id',
             as: 'optimizations'
         });
+        db.Farm.hasMany(db.DeviceStatus, {
+            foreignKey: 'farmId',
+            sourceKey: 'id',
+            as: 'deviceStatuses'
+        });
     }
 }
 
