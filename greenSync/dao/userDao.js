@@ -47,7 +47,8 @@ class UserDao {
       }
 
       const result = await User.findOne({
-        attributes: ['id', 'farmId', 'userId', 'password', 'name', 'email', 'phoneNumber', 'imgPath'],
+        // attributes: ['id', 'farmId', 'userId', 'password', 'name', 'email', 'phoneNumber', 'imgPath'],
+        attributes: ['id', 'farmId', 'userId', 'password', 'name', 'email', 'phoneNumber'],
         where: {
           userId: params.userId
         },
