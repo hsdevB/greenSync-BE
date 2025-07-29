@@ -8,6 +8,7 @@ import Nutrient from './nutrient.js';
 import Optimization from './optimization.js';
 import Temperature from './temperature.js';
 import Weather from './weather.js';
+import DeviceStatus from './deviceStatus.js';
 
 const db = {};
 
@@ -23,6 +24,7 @@ db.Nutrient = Nutrient;
 db.Optimization = Optimization;
 db.Temperature = Temperature;
 db.Weather = Weather;
+db.DeviceStatus = DeviceStatus;
 
 // model init
 User.init(sequelize);
@@ -34,6 +36,7 @@ Nutrient.init(sequelize);
 Optimization.init(sequelize);
 Temperature.init(sequelize);
 Weather.init(sequelize);
+DeviceStatus.init(sequelize);
 
 // 관계 설정
 Object.keys(db).forEach(modelName => {

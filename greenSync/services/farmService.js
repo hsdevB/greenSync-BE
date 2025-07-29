@@ -1,5 +1,6 @@
 import FarmDao from '../dao/farmDao.js';
 import FarmCode from '../utils/farmCode.js';
+import deviceStatusDao from '../dao/deviceStatusDao.js';
 import Logger from '../utils/logger.js';
 
 class FarmService {
@@ -33,9 +34,13 @@ class FarmService {
 
       const result = await FarmDao.insert(farmData);
       
-      Logger.info(`FarmService.generateFarmCode: 팜코드 생성 완료 - 농장코드: ${result.farmCode}`);
+      // deviceStatus 초기 데이터 생성
+      await deviceStatusDao.createInitialDeviceStatus(result.farmId);
+      
+      Logger.info(`FarmService.generateFarmCode: 팜코드 생성 완료 - 농장코드: ${result.farmCode}, 농장ID: ${result.farmId}`);
       return {
         farmCode: result.farmCode,
+        farmId: result.farmId
       };
       
     } catch (err) {

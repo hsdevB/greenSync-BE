@@ -19,7 +19,8 @@ predictRouter.post('/', (req, res) => {
   } else if (crop === 'paprika') {
     pyScriptName = 'Paprika_predict.py';
   } else {
-    return res.status(400).json({ status: "error", message: "Invalid crop type" });
+    res.status(400).json({ status: "error", message: "Invalid crop type" });
+    return;
   }
 
   const pyScriptPath = path.resolve(__dirname, '..', 'Ai', pyScriptName);
@@ -30,7 +31,8 @@ predictRouter.post('/', (req, res) => {
   exec(pyCmd, (error, stdout, stderr) => {
     if (error) {
       console.error('Python error:', stderr);
-      return res.status(500).json({ status: "error", message: "Python execution error", detail: stderr });
+      res.status(500).json({ status: "error", message: "Python execution error", detail: stderr });
+      return;
     }
 
     console.log('PYTHON STDOUT:', stdout);
@@ -40,10 +42,10 @@ predictRouter.post('/', (req, res) => {
       if (jsonStart === -1 || jsonEnd === -1) throw new Error("No JSON found in Python output");
       const jsonString = stdout.substring(jsonStart, jsonEnd + 1);
       const data = JSON.parse(jsonString);
-      return res.json(data);
-    } catch (e) {
+      res.status(200).json(data);
+    } catch {
       console.error('Failed to parse Python response:', stdout);
-      return res.status(500).json({ status: "error", message: "Failed to parse Python response", raw: stdout });
+      res.status(500).json({ status: "error", message: "Failed to parse Python response", raw: stdout });
     }
   });
 });
