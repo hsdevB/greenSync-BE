@@ -1,6 +1,8 @@
+// temperatureDao.js
 import Temperature from '../models/temperature.js';
 import Farm from '../models/farm.js';
 import Logger from '../utils/logger.js';
+import { Op } from 'sequelize'; // Op 임포트
 
 class TemperatureDao {
   static async saveTemperature(temperature, farmCode) {
@@ -112,6 +114,35 @@ class TemperatureDao {
       
       Logger.error(`TemperatureDao.getTemperatureByFarmCode: 농장코드로 온도 데이터 조회 실패 - 농장코드: ${farmCode}, 에러: ${error.message}`);
       throw new Error(`농장코드로 온도 데이터 조회에 실패했습니다: ${error.message}`);
+    }
+  }
+
+  static async getTemperatureDataByFarmIdAndDateRange(farmId, startDate, endDate) {
+    try {
+      if (!farmId || typeof farmId !== 'number' || farmId <= 0) {
+        throw new Error('유효한 농장 ID가 필요합니다.');
+      }
+      if (!startDate || !(startDate instanceof Date)) {
+        throw new Error('유효한 시작 날짜가 필요합니다.');
+      }
+      if (!endDate || !(endDate instanceof Date)) {
+        throw new Error('유효한 종료 날짜가 필요합니다.');
+      }
+
+      const temperatureData = await Temperature.findAll({
+        where: {
+          farmId,
+          createdAt: {
+            [Op.gte]: startDate,
+            [Op.lt]: endDate
+          }
+        },
+        order: [['createdAt', 'ASC']]
+      });
+      return temperatureData;
+    } catch (error) {
+      Logger.error(`TemperatureDao.getTemperatureDataByFarmIdAndDateRange: 온도 데이터 조회 실패 - 농장ID: ${farmId}, 에러: ${error.message}`);
+      throw error;
     }
   }
 }

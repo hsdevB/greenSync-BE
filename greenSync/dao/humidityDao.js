@@ -1,6 +1,8 @@
+// humidityDao.js
 import Humidity from '../models/humidity.js';
 import Farm from '../models/farm.js';
 import Logger from '../utils/logger.js';
+import { Op } from 'sequelize'; // Op 임포트
 
 class HumidityDao {
   static async saveHumidity(humidity, farmCode) {
@@ -102,6 +104,35 @@ class HumidityDao {
       
       Logger.error(`HumidityDao.getHumidityByFarmCode: 농장코드로 습도 데이터 조회 실패 - 농장코드: ${farmCode}, 에러: ${error.message}`);
       throw new Error(`농장코드로 습도 데이터 조회에 실패했습니다: ${error.message}`);
+    }
+  }
+
+  static async getHumidityDataByFarmIdAndDateRange(farmId, startDate, endDate) {
+    try {
+      if (!farmId || typeof farmId !== 'number' || farmId <= 0) {
+        throw new Error('유효한 농장 ID가 필요합니다.');
+      }
+      if (!startDate || !(startDate instanceof Date)) {
+        throw new Error('유효한 시작 날짜가 필요합니다.');
+      }
+      if (!endDate || !(endDate instanceof Date)) {
+        throw new Error('유효한 종료 날짜가 필요합니다.');
+      }
+
+      const humidityData = await Humidity.findAll({
+        where: {
+          farmId,
+          createdAt: {
+            [Op.gte]: startDate,
+            [Op.lt]: endDate
+          }
+        },
+        order: [['createdAt', 'ASC']]
+      });
+      return humidityData;
+    } catch (error) {
+      Logger.error(`HumidityDao.getHumidityDataByFarmIdAndDateRange: 습도 데이터 조회 실패 - 농장ID: ${farmId}, 에러: ${error.message}`);
+      throw error;
     }
   }
 }

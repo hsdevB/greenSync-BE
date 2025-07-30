@@ -84,6 +84,26 @@ class FarmService {
       throw new Error(`농장 정보 조회에 실패했습니다: ${err.message}`);
     }
   }
+  static async getFarmById(farmId) {
+    try {
+      const result = await FarmDao.selectById(farmId);
+      
+      if (!result) {
+        Logger.error(`FarmService.getFarmById: 존재하지 않는 농장ID - farmId: ${farmId}`);
+        throw new Error('존재하지 않는 농장ID입니다.');
+      }
+
+      Logger.info(`FarmService.getFarmById: 농장 정보 조회 완료 - 농장ID: ${farmId}`);
+      return result;
+      
+    } catch (err) {
+      if (err.message.includes('존재하지 않는 농장ID')) {
+        throw err;
+      }
+      Logger.error(`FarmService.getFarmById: 농장 정보 조회 실패 - farmId: ${farmId}, 에러: ${err.message}`);
+      throw new Error(`농장 정보 조회에 실패했습니다: ${err.message}`);
+    }
+  }
 }
 
 export default FarmService;

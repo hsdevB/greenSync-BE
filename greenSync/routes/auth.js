@@ -16,7 +16,6 @@ authRouter.get('/me', AuthMiddleware.isLoggedIn, (req, res) => {
           });
       }
 
-      // 필수 필드 검증
       if (!userPayload.userId) {
           Logger.error('authRouter.me: 사용자 ID가 누락되었습니다.');
           return res.status(400).json({
@@ -33,21 +32,12 @@ authRouter.get('/me', AuthMiddleware.isLoggedIn, (req, res) => {
           });
       }
 
-      if (!userPayload.farmId) {
-          Logger.error('authRouter.me: 농장 ID가 누락되었습니다.');
-          return res.status(400).json({
-            success: false,
-            message: "농장 ID가 누락되었습니다."
-          });
-      }
-
       const userInfo = {
         userId: userPayload.userId,
         name: userPayload.name,
-        farmId: userPayload.farmId,
       };
   
-      Logger.info(`authRouter.me: 사용자 정보 조회 완료 - 사용자ID: ${userInfo.userId}, 이름: ${userInfo.name}, 농장ID: ${userInfo.farmId}`);
+      Logger.info(`authRouter.me: 사용자 정보 조회 완료 - 사용자ID: ${userInfo.userId}, 이름: ${userInfo.name}`);
       res.status(200).json({
         success: true,
         message: '사용자 정보 요청 성공',

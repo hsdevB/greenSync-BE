@@ -15,6 +15,7 @@ class FarmDao {
       }
 
       const inserted = await Farm.create(params);
+      // console.log('inserted', inserted);
       Logger.info(`FarmDao.insert: 농장 데이터 저장 완료 - ID: ${inserted.id}, 농장코드: ${inserted.farmCode}`);
       return { farmId: inserted.id, farmCode: inserted.farmCode };
     } catch (err) {
