@@ -145,6 +145,149 @@ signupRouter.post('/', async (req, res) => {
             message: errorMessage
         });
     }
+
+});
+
+signupRouter.post('/send-email-code', async (req, res) => {
+    try {
+        if (!req.body || typeof req.body !== 'object') {
+            Logger.error('signupRouter.sendEmailCode: 요청 본문이 제공되지 않았습니다.');
+            return res.status(400).json({
+                success: false,
+                message: '요청 본문이 필요합니다.'
+            });
+        }
+
+        const { email } = req.body;
+
+        if (!email || typeof email !== 'string' || email.trim() === '') {
+            Logger.error('signupRouter.sendEmailCode: 이메일이 제공되지 않았습니다.');
+            return res.status(400).json({
+                success: false,
+                message: '이메일은 필수값입니다.'
+            });
+        }
+
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if (!emailRegex.test(email)) {
+            Logger.error(`signupRouter.sendEmailCode: 유효하지 않은 이메일 형식 - email: ${email}`);
+            return res.status(400).json({
+                success: false,
+                message: '유효한 이메일 형식이 아닙니다.'
+            });
+        }
+
+        Logger.info(`signupRouter.sendEmailCode: 이메일 인증코드 발송 요청 - email: ${email}`);
+
+        const result = await UserService.sendEmailCode({ email });
+
+        Logger.info(`signupRouter.sendEmailCode: 이메일 인증코드 발송 완료 - email: ${email}`);
+        res.status(200).json({
+            success: true,
+            message: '이메일 인증코드가 발송되었습니다.',
+            data: result.data
+        });
+
+    } catch (err) {
+        let statusCode = 500;
+        let errorMessage = '이메일 인증코드 발송 중 오류가 발생했습니다.';
+        
+        const errMsg = err.message;
+        
+        const clientErrors = [
+            '이메일은 필수값입니다.',
+            '유효한 이메일 형식이 아닙니다.',
+            '이미 존재하는 이메일입니다.',
+            '이메일 발송에 실패했습니다.'
+        ];
+        
+        if (clientErrors.includes(errMsg)) {
+            statusCode = 400;
+            errorMessage = err.message;
+        }
+        
+        Logger.error(`signupRouter.sendEmailCode: 이메일 인증코드 발송 실패 - email: ${req.body?.email || '알 수 없음'}, 에러: ${err.message}`);
+        res.status(statusCode).json({
+            success: false,
+            message: errorMessage
+        });
+    }
+});
+
+signupRouter.post('/verify-email-code', async (req, res) => {
+    try {
+        if (!req.body || typeof req.body !== 'object') {
+            Logger.error('signupRouter.verifyEmailCode: 요청 본문이 제공되지 않았습니다.');
+            return res.status(400).json({
+                success: false,
+                message: '요청 본문이 필요합니다.'
+            });
+        }
+
+        const { email, code } = req.body;
+
+        if (!email || typeof email !== 'string' || email.trim() === '') {
+            Logger.error('signupRouter.verifyEmailCode: 이메일이 제공되지 않았습니다.');
+            return res.status(400).json({
+                success: false,
+                message: '이메일은 필수값입니다.'
+            });
+        }
+
+        if (!code || typeof code !== 'string' || code.trim() === '') {
+            Logger.error('signupRouter.verifyEmailCode: 인증코드가 제공되지 않았습니다.');
+            return res.status(400).json({
+                success: false,
+                message: '인증코드는 필수값입니다.'
+            });
+        }
+
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if (!emailRegex.test(email)) {
+            Logger.error(`signupRouter.verifyEmailCode: 유효하지 않은 이메일 형식 - email: ${email}`);
+            return res.status(400).json({
+                success: false,
+                message: '유효한 이메일 형식이 아닙니다.'
+            });
+        }
+
+        Logger.info(`signupRouter.verifyEmailCode: 이메일 인증코드 확인 요청 - email: ${email}`);
+
+        const result = await UserService.verifyEmailCode({ email, code });
+
+        Logger.info(`signupRouter.verifyEmailCode: 이메일 인증코드 확인 완료 - email: ${email}`);
+        res.status(200).json({
+            success: true,
+            message: '이메일 인증이 성공적으로 완료되었습니다.',
+            data: result.data
+        });
+
+    } catch (err) {
+        let statusCode = 500;
+        let errorMessage = '이메일 인증코드 확인 중 오류가 발생했습니다.';
+        
+        const errMsg = err.message;
+        
+        const clientErrors = [
+            '이메일은 필수값입니다.',
+            '인증코드는 필수값입니다.',
+            '유효한 이메일 형식이 아닙니다.',
+            '유효하지 않은 인증코드입니다.',
+            '인증코드가 만료되었습니다.',
+            '인증코드가 일치하지 않습니다.'
+        ];
+        
+        if (clientErrors.includes(errMsg)) {
+            statusCode = 400;
+            errorMessage = err.message;
+        }
+        
+        Logger.error(`signupRouter.verifyEmailCode: 이메일 인증코드 확인 실패 - email: ${req.body?.email || '알 수 없음'}, 에러: ${err.message}`);
+        res.status(statusCode).json({
+            success: false,
+            message: errorMessage
+        });
+    }
 });
 
 export default signupRouter;

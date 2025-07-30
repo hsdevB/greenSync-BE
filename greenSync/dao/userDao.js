@@ -156,6 +156,37 @@ class UserDao {
       throw new Error(`사용자 존재 여부 확인에 실패했습니다: ${err.message}`);
     }
   }
+
+  static async findByEmail(email) {
+    try {
+      if (!email || typeof email !== 'string' || email.trim() === '') {
+        Logger.error('UserDao.findByEmail: 이메일이 제공되지 않았습니다.');
+        throw new Error('이메일이 필요합니다.');
+      }
+
+      const user = await User.findOne({ 
+        where: { 
+          email,
+          deletedAt: null  // 탈퇴하지 않은 사용자만 체크
+        },
+        attributes: ['id', 'userId', 'email']
+      });
+      
+      if (user) {
+        Logger.info(`UserDao.findByEmail: 이메일로 사용자 조회 완료 - email: ${email}, userId: ${user.userId}`);
+      } else {
+        Logger.info(`UserDao.findByEmail: 이메일로 사용자를 찾을 수 없음 - email: ${email}`);
+      }
+      
+      return user;
+    } catch (err) {
+      if (err.message.includes('이메일이 필요합니다')) {
+        throw err;
+      }
+      Logger.error(`UserDao.findByEmail: 이메일로 사용자 조회 실패 - email: ${email}, 에러: ${err.message}`);
+      throw new Error(`이메일 조회에 실패했습니다: ${err.message}`);
+    }
+  }
 }
 
 export default UserDao;
