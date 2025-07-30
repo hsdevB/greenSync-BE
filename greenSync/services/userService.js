@@ -110,14 +110,14 @@ class UserService {
       }
 
       const user = await UserDao.select({ userId });
-      
       if (!user) {
         Logger.error(`UserService.getUserProfile: 존재하지 않는 사용자 - userId: ${userId}`);
         throw new Error('존재하지 않는 사용자입니다.');
       }
 
-      const farm = await FarmService.getFarmByCode(user.farmId);
+      const farm = await FarmService.getFarmById(user.farmId);
       if (!farm) {
+
         Logger.error(`UserService.getUserProfile: 존재하지 않는 농장 - farmId: ${user.farmId}`);
         throw new Error('존재하지 않는 농장입니다.');
       }
@@ -129,6 +129,7 @@ class UserService {
           userId: user.userId,
           name: user.name,
           email: user.email,
+          password: user.password,
           phoneNumber: user.phoneNumber,
           farmCode: farm.farmCode,
           // profileImage: user.imgPath ? `/uploads/profiles${user.imgPath}` : '/images/default-profile.png'

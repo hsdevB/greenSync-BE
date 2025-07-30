@@ -1,5 +1,5 @@
 class FarmCode {
-    static async createFarmCode() {
+    static createFarmCode() {
       const letters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
       const numbers = '0123456789';
       
