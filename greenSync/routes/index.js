@@ -8,6 +8,7 @@ import weatherRouter from './weather.js';
 import sensorRouter from './sensor.js';
 import userRouter from './user.js';
 import predictRouter from './predict.js';
+import chartRouter from './chart.js';
 
 const router = express.Router();
 
@@ -19,5 +20,6 @@ router.use('/weather', weatherRouter);
 router.use('/sensor', sensorRouter);
 router.use('/user', userRouter);
 router.use('/predict', predictRouter);
+router.use('/chart', chartRouter);
 
 export default router;
