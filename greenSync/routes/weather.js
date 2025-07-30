@@ -87,19 +87,19 @@ weatherRouter.get('/city/:cityName', async (req, res) => {
   }
 });
 
-weatherRouter.get('/mapped', async (req, res) => {
+weatherRouter.get('/mapped/:farmcode', async (req, res) => {
   try {
-    const farmId = req.query.farmId ? parseInt(req.query.farmId) : 1; 
+    const farmCode = req.params.farmcode;
     
-    if (farmId !== null && (isNaN(farmId) || farmId <= 0)) {
-      Logger.error('weatherRouter.mapped: 유효하지 않은 농장ID - farmId: ' + req.query.farmId);
+    if (farmCode !== null && (isNaN(farmCode) || farmCode <= 0)) {
+      Logger.error('weatherRouter.mapped: 유효하지 않은 농장코드 - farmCode: ' + req.params.farmCode);
       return res.status(400).json({
         success: false,
         message: '유효한 농장ID가 필요합니다. (null이거나 0보다 큰 정수)'
       });
     }
 
-    const result = await WeatherService.getMappedWeatherData('서울', farmId);
+    const result = await WeatherService.getMappedWeatherData('서울', farmCode);
     
     if (result.success && result.data) {
       
@@ -108,7 +108,7 @@ weatherRouter.get('/mapped', async (req, res) => {
         ...dataToSave,
         isDay: dataToSave.isDay,
         isRain: dataToSave.isRain,
-        farmId: farmId 
+        farmCode: farmCode 
       });
     }
 
@@ -120,7 +120,7 @@ weatherRouter.get('/mapped', async (req, res) => {
     });
     
   } catch (err) {
-    Logger.error('weatherRouter.mapped: 서울 날씨 데이터 조회 실패 - farmId: ' + (req.query.farmId || '기본값(null)') + ', 에러: ' + err.message);
+    Logger.error('weatherRouter.mapped: 서울 날씨 데이터 조회 실패 - farmCode: ' + (req.params.farmCode || '기본값(null)') + ', 에러: ' + err.message);
     res.status(500).json({
       success: false,
       message: '서울 날씨 데이터 조회에 실패했습니다.'

@@ -26,7 +26,7 @@ class WeatherDao {
                 dewPoint: this.toNumber(dbFields.dewPoint),
                 isDay: Boolean(dbFields.isDay),
                 isRain: Boolean(dbFields.isRain),
-                farmId: dbFields.farmId || null
+                farmCode: dbFields.farmCode
             };
 
             // 각 필드별 유효성 검사 (함수 호출 대신 인라인으로)
@@ -72,12 +72,6 @@ class WeatherDao {
 
             if (typeof cleanData.isRain !== 'boolean') {
                 errors.push('강수 여부(isRain)는 true 또는 false 값이어야 합니다.');
-            }
-
-            if (cleanData.farmId !== null && cleanData.farmId !== undefined) {
-                if (typeof cleanData.farmId !== 'number' || !Number.isInteger(cleanData.farmId) || cleanData.farmId <= 0) {
-                    errors.push('농장 ID(farmId)는 0보다 큰 정수여야 합니다.');
-                }
             }
 
             if (errors.length > 0) {
