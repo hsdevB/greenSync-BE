@@ -267,32 +267,21 @@ class UserService {
         throw new Error('이메일은 필수값입니다.');
       }
 
-      // 이메일 형식 검증
       const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
       if (!emailRegex.test(email)) {
         Logger.error(`UserService.sendEmailCode: 유효하지 않은 이메일 형식 - email: ${email}`);
         throw new Error('유효한 이메일 형식이 아닙니다.');
       }
 
-      // 이미 회원가입된 이메일인지 확인
-      // const existingUser = await UserDao.findByEmail(email);
-      // if (existingUser) {
-      //   Logger.error(`UserService.sendEmailCode: 이미 회원가입된 이메일 - email: ${email}`);
-      //   throw new Error('이미 회원가입된 이메일입니다.');
-      // }
-
-      // 인증 코드 생성 (6자리 숫자)
       const code = Math.floor(100000 + Math.random() * 900000).toString();
       
-      // 코드 저장 (10분 만료)
       const expiresAt = new Date(Date.now() + 10 * 60 * 1000); // 10분
       emailCodeStore[email] = {
         code,
         expiresAt,
-        attempts: 0 // 시도 횟수 제한
+        attempts: 0
       };
 
-      // 이메일 발송
       const transporter = nodemailer.createTransport({
         service: 'gmail',
         auth: {
@@ -362,44 +351,37 @@ class UserService {
         throw new Error('인증코드는 필수값입니다.');
       }
 
-      // 이메일 형식 검증
       const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
       if (!emailRegex.test(email)) {
         Logger.error(`UserService.verifyEmailCode: 유효하지 않은 이메일 형식 - email: ${email}`);
         throw new Error('유효한 이메일 형식이 아닙니다.');
       }
 
-      // 저장된 코드 확인
       const storedData = emailCodeStore[email];
       if (!storedData) {
         Logger.error(`UserService.verifyEmailCode: 인증코드가 존재하지 않음 - email: ${email}`);
         throw new Error('인증코드가 존재하지 않습니다. 다시 발송해주세요.');
       }
 
-      // 만료 시간 확인
       if (new Date() > storedData.expiresAt) {
         delete emailCodeStore[email];
         Logger.error(`UserService.verifyEmailCode: 인증코드 만료 - email: ${email}`);
         throw new Error('인증코드가 만료되었습니다. 다시 발송해주세요.');
       }
 
-      // 시도 횟수 확인
       if (storedData.attempts >= 5) {
         delete emailCodeStore[email];
         Logger.error(`UserService.verifyEmailCode: 인증코드 시도 횟수 초과 - email: ${email}`);
         throw new Error('인증코드 시도 횟수를 초과했습니다. 다시 발송해주세요.');
       }
 
-      // 시도 횟수 증가
       storedData.attempts++;
 
-      // 코드 일치 확인
       if (storedData.code !== code) {
         Logger.error(`UserService.verifyEmailCode: 인증코드 불일치 - email: ${email}, 입력코드: ${code}`);
         throw new Error('인증코드가 일치하지 않습니다.');
       }
 
-      // 인증 성공 - 저장된 데이터 삭제
       delete emailCodeStore[email];
 
       Logger.info(`UserService.verifyEmailCode: 이메일 인증 성공 - email: ${email}`);
@@ -425,7 +407,6 @@ class UserService {
     }
   }
 
-  // 만료된 코드 정리 메서드 (주기적으로 호출)
   static cleanupExpiredCodes() {
     const now = new Date();
     let cleanedCount = 0;
