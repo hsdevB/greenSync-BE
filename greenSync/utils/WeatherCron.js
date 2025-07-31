@@ -47,8 +47,19 @@ class WeatherCron {
 
       Logger.info('WeatherCron 실시간 날씨데이터 수집 시작');
       
+      // 크론 작업을 더 안정적으로 실행하기 위한 설정
       this.task = cron.schedule('*/10 * * * *', async () => {
-        await this.callAPI();
+        // 비동기 처리로 블로킹 방지
+        setImmediate(async () => {
+          try {
+            await this.callAPI();
+          } catch (error) {
+            Logger.error('크론 작업 실행 중 오류: ' + error.message);
+          }
+        });
+      }, {
+        scheduled: true,
+        timezone: "Asia/Seoul"
       });
 
       if (!this.task) {
@@ -57,7 +68,16 @@ class WeatherCron {
 
       this.isRunning = true;
       
-      setTimeout(() => this.callAPI(), 3000);
+      // 초기 실행을 비동기로 처리
+      setTimeout(() => {
+        setImmediate(async () => {
+          try {
+            await this.callAPI();
+          } catch (error) {
+            Logger.error('초기 크론 실행 중 오류: ' + error.message);
+          }
+        });
+      }, 3000);
     } catch (error) {
       Logger.error('WeatherCron 시작 실패: ' + error.message);
       throw error;
@@ -95,12 +115,18 @@ class WeatherCron {
         throw new Error('유효하지 않은 API URL');
       }
 
-      const response = await axios.get(apiUrl, { 
-        timeout: 30000,
-        validateStatus: function (status) {
-          return status >= 200 && status < 600;
-        }
-      });
+      // 비동기 처리를 위한 Promise 기반 요청
+      const response = await Promise.race([
+        axios.get(apiUrl, { 
+          timeout: 30000,
+          validateStatus: function (status) {
+            return status >= 200 && status < 600;
+          }
+        }),
+        new Promise((_, reject) => 
+          setTimeout(() => reject(new Error('요청 시간 초과')), 30000)
+        )
+      ]);
       
       if (!response || !response.data) {
         throw new Error('API 응답이 없음');
@@ -118,8 +144,9 @@ class WeatherCron {
           data: response.data.data
         };
 
+        // 데이터 비교를 비동기로 처리하여 블로킹 방지
         if (this.previousData) {
-          this.compareData(this.previousData, response.data.data);
+          setImmediate(() => this.compareData(this.previousData, response.data.data));
         }
         
         this.previousData = response.data.data;

@@ -386,6 +386,68 @@ class SensorDataService {
       throw error;
     }
   }
+
+  // 아두이노로부터 받은 LED/팬 상태를 저장하는 함수
+  static async saveArduinoDeviceStatus(farmCode, fan, leds) {
+    try {
+      console.log('saveArduinoDeviceStatus', farmCode);
+      if (!farmCode || typeof farmCode !== 'string' || farmCode.trim() === '') {
+        throw new Error('농장코드는 필수이며 유효한 문자열이어야 합니다.');
+      }
+
+      if (typeof fan !== 'boolean') {
+        throw new Error('fan 값은 true 또는 false여야 합니다.');
+      }
+
+      if (!Array.isArray(leds) || leds.length !== 4 || !leds.every(val => typeof val === 'boolean')) {
+        throw new Error('leds는 4개의 불리언 값으로 구성된 배열이어야 합니다.');
+      }
+
+      const result = await deviceStatusDao.saveArduinoDeviceStatus(farmCode, fan, leds);
+      Logger.info(`sensorDataService.saveArduinoDeviceStatus.response result: ${JSON.stringify(result)}`);
+      return result;
+    } catch (error) {
+      Logger.error(`sensorDataService.saveArduinoDeviceStatus.error: ${error.message}`);
+      throw error;
+    }
+  }
+
+  // 프론트엔드로부터 받은 온도/습도/LED 단계를 저장하는 함수
+  static async saveFrontendControlSettings(farmCode, controlTemperature, controlHumidity, ledStage) {
+    try {
+      if (!farmCode || typeof farmCode !== 'string' || farmCode.trim() === '') {
+        throw new Error('농장코드는 필수이며 유효한 문자열이어야 합니다.');
+      }
+
+      // 제어온도 유효성 검사
+      if (controlTemperature !== null && controlTemperature !== undefined) {
+        if (typeof controlTemperature !== 'number' || isNaN(controlTemperature)) {
+          throw new Error('제어온도는 유효한 숫자여야 합니다.');
+        }
+      }
+
+      // 제어습도 유효성 검사
+      if (controlHumidity !== null && controlHumidity !== undefined) {
+        if (typeof controlHumidity !== 'number' || isNaN(controlHumidity)) {
+          throw new Error('제어습도는 유효한 숫자여야 합니다.');
+        }
+      }
+
+      // LED 단계 유효성 검사
+      if (ledStage !== null && ledStage !== undefined) {
+        if (typeof ledStage !== 'number' || isNaN(ledStage) || ledStage < 0 || ledStage > 4) {
+          throw new Error('LED 단계는 0-4 사이의 정수여야 합니다.');
+        }
+      }
+
+      const result = await deviceStatusDao.saveFrontendControlSettings(farmCode, controlTemperature, controlHumidity, ledStage);
+      Logger.info(`sensorDataService.saveFrontendControlSettings.response result: ${JSON.stringify(result)}`);
+      return result;
+    } catch (error) {
+      Logger.error(`sensorDataService.saveFrontendControlSettings.error: ${error.message}`);
+      throw error;
+    }
+  }
 }
 
 export default SensorDataService;
