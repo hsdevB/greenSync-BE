@@ -63,10 +63,18 @@ models.sequelize.authenticate()
     return models.sequelize.sync();
   })
   .then(() => {
-    
     app.listen(PORT, () => {
       Logger.info(`🚀 GreenSync API Server started on port ${PORT}`);  
-      setTimeout(() => weatherCron.start(), 2000); // 자동 시작!
+      
+      // 크론 작업을 안전하게 시작
+      setTimeout(() => {
+        try {
+          weatherCron.start();
+          Logger.info('WeatherCron 작업이 성공적으로 시작되었습니다.');
+        } catch (error) {
+          Logger.error('WeatherCron 시작 실패: ' + error.message);
+        }
+      }, 5000); // 5초 후 시작하여 서버가 완전히 준비된 후 실행
     });
   })
   .catch((err) => {

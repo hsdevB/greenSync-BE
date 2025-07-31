@@ -383,5 +383,44 @@ sensorRouter.put('/deviceStatus/:farmCode', async (req, res) => {
   }
 });
 
+// 프론트엔드 제어 설정 업데이트 (온도/습도/LED 단계)
+sensorRouter.put('/controlSettings/:farmCode', async (req, res) => {
+  try {
+    const { farmCode } = req.params;
+    const { controlTemperature, controlHumidity, ledStage } = req.body;
+
+    if (!farmCode || typeof farmCode !== 'string' || farmCode.trim() === '') {
+      Logger.error(`sensorRouter.controlSettings: 유효하지 않은 농장코드 - farmCode: ${farmCode}`);
+      return res.status(400).json({
+        success: false,
+        message: '유효한 농장코드가 필요합니다.'
+      });
+    }
+
+    // 최소한 하나의 제어 데이터는 제공되어야 함
+    if (controlTemperature === undefined && controlHumidity === undefined && ledStage === undefined) {
+      Logger.error(`sensorRouter.controlSettings: 최소한 하나의 제어 데이터가 제공되어야 합니다.`);
+      return res.status(400).json({
+        success: false,
+        message: '최소한 하나의 제어 데이터가 제공되어야 합니다.'
+      });
+    }
+
+    const result = await sensorDataService.saveFrontendControlSettings(farmCode, controlTemperature, controlHumidity, ledStage);
+    Logger.info(`sensorRouter.controlSettings: 프론트엔드 제어 설정 업데이트 완료 - 농장코드: ${farmCode}`);
+
+    res.status(200).json({
+      success: true,
+      message: '프론트엔드 제어 설정 업데이트 성공',
+      data: result
+    });
+  } catch (error) {
+    Logger.error(`sensorRouter.controlSettings: 프론트엔드 제어 설정 업데이트 실패 - 농장코드: ${req.params.farmCode}, 에러: ${error.message}`);
+    res.status(500).json({
+      success: false,
+      message: '프론트엔드 제어 설정 업데이트에 실패했습니다.'
+    });
+  }
+});
 
 export default sensorRouter;

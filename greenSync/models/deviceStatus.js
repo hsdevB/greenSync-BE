@@ -34,6 +34,11 @@ class DeviceStatus extends Model {
           allowNull: true,
           comment: 'LED4 상태',
         },
+        ledStage: {
+          type: DataTypes.INTEGER,
+          allowNull: true,
+          comment: 'LED 단계',
+        },
         controlTemperature: {
           type: DataTypes.FLOAT,
           allowNull: true,

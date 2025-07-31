@@ -17,12 +17,12 @@ client.on('connect', () => {
     }
   });
 
-  // 상태 데이터 구독 추가
+  // 아두이노 장치 상태 구독
   client.subscribe('device/status/+', (err) => {
     if (err) {
-      Logger.error('[MQTT Client] Status topic subscribe error:', err);
+      Logger.error('[MQTT Client] Arduino device status topic subscribe error:', err);
     } else {
-      Logger.info('[MQTT Client] Subscribed to device status topics');
+      Logger.info('[MQTT Client] Subscribed to arduino device status topics');
     }
   });
 });
@@ -31,22 +31,30 @@ client.on('message', async (topic, message) => {
   try {
     const payload = JSON.parse(message.toString());
 
-    // 센서 데이터 저장
-    if (topic.startsWith('sensor/data/')) {
-      const farmCode = topic.split('/')[2];
-      await sensorDataService.saveSensorData(payload, farmCode);
-      Logger.info('[MQTT Client] Sensor data saved');
-    }
+    // 비동기 처리로 블로킹 방지
+    setImmediate(async () => {
+      try {
+        // 센서 데이터 저장
+        if (topic.startsWith('sensor/data/')) {
+          const farmCode = topic.split('/')[2];
+          await sensorDataService.saveSensorData(payload, farmCode);
+          Logger.info('[MQTT Client] Sensor data saved');
+        }
 
-    // 장치 상태 저장
-    else if (topic.startsWith('device/status/')) {
-      const farmCode = topic.split('/')[2];
-      await sensorDataService.saveDeviceStatus(payload, farmCode);
-      Logger.info('[MQTT Client] Device status updated');
-    }
+        // 아두이노 장치 상태 저장
+        else if (topic.startsWith('device/status/')) {
+          const farmCode = topic.split('/')[2];
+          const { fan, leds } = payload;
+          await sensorDataService.saveArduinoDeviceStatus(farmCode, fan, leds);
+          Logger.info('[MQTT Client] Arduino device status saved');
+        }
+      } catch (err) {
+        Logger.error('[MQTT Client] Error processing message:', err);
+      }
+    });
 
   } catch (err) {
-    Logger.error('[MQTT Client] Error processing message:', err);
+    Logger.error('[MQTT Client] Error parsing message:', err);
   }
 });
 

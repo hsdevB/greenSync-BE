@@ -93,6 +93,7 @@ class DeviceStatusDao {
         led2: null,
         led3: null,
         led4: null,
+        ledStage: 0,
         controlTemperature: 0,
         controlHumidity: 0,
         timestamp: new Date()
@@ -305,6 +306,161 @@ class DeviceStatusDao {
     } catch (err) {
       Logger.error(`DeviceStatusDao.updateDeviceControl: 장치 제어 설정 업데이트 실패 - 농장코드: ${farmCode}, 에러: ${err.message}`);
       throw new Error(`장치 제어 설정 업데이트에 실패했습니다: ${err.message}`);
+    }
+  }
+
+  // 아두이노로부터 받은 LED/팬 상태를 저장하는 함수
+  static async saveArduinoDeviceStatus(farmCode, fan, leds) {
+    try {
+      if (!farmCode || typeof farmCode !== 'string' || farmCode.trim() === '') {
+        Logger.error('DeviceStatusDao.saveArduinoDeviceStatus: 농장코드가 제공되지 않았습니다.');
+        throw new Error('농장코드는 필수값입니다.');
+      }
+
+      const farm = await Farm.findOne({ where: { farmCode: farmCode } });
+      if (!farm) {
+        Logger.error('DeviceStatusDao.saveArduinoDeviceStatus: 농장을 찾을 수 없습니다.');
+        throw new Error('농장을 찾을 수 없습니다.');
+      }
+
+      if (typeof fan !== 'boolean') {
+        Logger.error('DeviceStatusDao.saveArduinoDeviceStatus: 팬 상태는 true 또는 false여야 합니다.');
+        throw new Error('팬 상태는 true 또는 false여야 합니다.');
+      }
+
+      if (!Array.isArray(leds) || leds.length !== 4 || !leds.every(val => typeof val === 'boolean')) {
+        Logger.error('DeviceStatusDao.saveArduinoDeviceStatus: LEDs 배열은 4개의 불리언 값이어야 합니다.');
+        throw new Error('LEDs 배열은 4개의 불리언 값으로 구성되어야 합니다.');
+      }
+
+      // 기존 장치 상태 조회
+      const existingStatus = await DeviceStatus.findOne({
+        where: { farmId: farm.id },
+        order: [['timestamp', 'DESC']]
+      });
+
+      if (existingStatus) {
+        // 기존 데이터 업데이트 (아두이노 상태만 업데이트)
+        await existingStatus.update({
+          fan: fan,
+          led1: leds[0],
+          led2: leds[1],
+          led3: leds[2],
+          led4: leds[3],
+          timestamp: new Date()
+        });
+
+        Logger.info(`DeviceStatusDao.saveArduinoDeviceStatus: 아두이노 장치 상태 업데이트 완료 - ID: ${existingStatus.id}, 농장코드: ${farmCode}`);
+        return existingStatus;
+      } else {
+        // 데이터가 없으면 새로 생성
+        const record = await DeviceStatus.create({
+          farmId: farm.id,
+          fan: fan,
+          led1: leds[0],
+          led2: leds[1],
+          led3: leds[2],
+          led4: leds[3],
+          ledStage: 0,
+          controlTemperature: 0,
+          controlHumidity: 0,
+          timestamp: new Date()
+        });
+
+        Logger.info(`DeviceStatusDao.saveArduinoDeviceStatus: 아두이노 장치 상태 생성 완료 - ID: ${record.id}, 농장코드: ${farmCode}`);
+        return record;
+      }
+    } catch (err) {
+      Logger.error(`DeviceStatusDao.saveArduinoDeviceStatus: 아두이노 장치 상태 저장 실패 - 농장코드: ${farmCode}, 에러: ${err.message}`);
+      throw new Error(`아두이노 장치 상태 저장에 실패했습니다: ${err.message}`);
+    }
+  }
+
+  // 프론트엔드로부터 받은 온도/습도/LED 단계를 저장하는 함수
+  static async saveFrontendControlSettings(farmCode, controlTemperature, controlHumidity, ledStage) {
+    try {
+      if (!farmCode || typeof farmCode !== 'string' || farmCode.trim() === '') {
+        Logger.error('DeviceStatusDao.saveFrontendControlSettings: 농장코드가 제공되지 않았습니다.');
+        throw new Error('농장코드는 필수값입니다.');
+      }
+
+      const farm = await Farm.findOne({ where: { farmCode: farmCode } });
+      if (!farm) {
+        Logger.error('DeviceStatusDao.saveFrontendControlSettings: 농장을 찾을 수 없습니다.');
+        throw new Error('농장을 찾을 수 없습니다.');
+      }
+
+      // 제어온도 유효성 검사
+      if (controlTemperature !== null && controlTemperature !== undefined) {
+        if (typeof controlTemperature !== 'number' || isNaN(controlTemperature)) {
+          Logger.error('DeviceStatusDao.saveFrontendControlSettings: 제어온도는 유효한 숫자여야 합니다.');
+          throw new Error('제어온도는 유효한 숫자여야 합니다.');
+        }
+      }
+
+      // 제어습도 유효성 검사
+      if (controlHumidity !== null && controlHumidity !== undefined) {
+        if (typeof controlHumidity !== 'number' || isNaN(controlHumidity)) {
+          Logger.error('DeviceStatusDao.saveFrontendControlSettings: 제어습도는 유효한 숫자여야 합니다.');
+          throw new Error('제어습도는 유효한 숫자여야 합니다.');
+        }
+      }
+
+      // LED 단계 유효성 검사
+      if (ledStage !== null && ledStage !== undefined) {
+        if (typeof ledStage !== 'number' || isNaN(ledStage) || ledStage < 0 || ledStage > 4) {
+          Logger.error('DeviceStatusDao.saveFrontendControlSettings: LED 단계는 0-4 사이의 정수여야 합니다.');
+          throw new Error('LED 단계는 0-4 사이의 정수여야 합니다.');
+        }
+      }
+
+      // 기존 장치 상태 조회
+      const existingStatus = await DeviceStatus.findOne({
+        where: { farmId: farm.id },
+        order: [['timestamp', 'DESC']]
+      });
+
+      if (existingStatus) {
+        // 기존 데이터 업데이트 (프론트엔드 제어 설정만 업데이트)
+        const updateData = {};
+        
+        if (controlTemperature !== null && controlTemperature !== undefined) {
+          updateData.controlTemperature = controlTemperature;
+        }
+        if (controlHumidity !== null && controlHumidity !== undefined) {
+          updateData.controlHumidity = controlHumidity;
+        }
+        if (ledStage !== null && ledStage !== undefined) {
+          updateData.ledStage = ledStage;
+        }
+        
+        updateData.timestamp = new Date();
+
+        await existingStatus.update(updateData);
+
+        Logger.info(`DeviceStatusDao.saveFrontendControlSettings: 프론트엔드 제어 설정 업데이트 완료 - ID: ${existingStatus.id}, 농장코드: ${farmCode}`);
+        return existingStatus;
+      } else {
+        // 데이터가 없으면 새로 생성
+        const record = await DeviceStatus.create({
+          farmId: farm.id,
+          fan: null,
+          led1: null,
+          led2: null,
+          led3: null,
+          led4: null,
+          ledStage: ledStage || 0,
+          controlTemperature: controlTemperature || 0,
+          controlHumidity: controlHumidity || 0,
+          timestamp: new Date()
+        });
+
+        Logger.info(`DeviceStatusDao.saveFrontendControlSettings: 프론트엔드 제어 설정 생성 완료 - ID: ${record.id}, 농장코드: ${farmCode}`);
+        return record;
+      }
+    } catch (err) {
+      Logger.error(`DeviceStatusDao.saveFrontendControlSettings: 프론트엔드 제어 설정 저장 실패 - 농장코드: ${farmCode}, 에러: ${err.message}`);
+      throw new Error(`프론트엔드 제어 설정 저장에 실패했습니다: ${err.message}`);
     }
   }
 }
