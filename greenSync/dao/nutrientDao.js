@@ -1,6 +1,7 @@
 import Nutrient from '../models/nutrient.js';
 import Farm from '../models/farm.js';
 import Logger from '../utils/logger.js';
+import { Op } from 'sequelize';
 
 class NutrientDao {
   static async saveNutrient(phLevel, elcDT, farmCode) {
@@ -114,6 +115,35 @@ class NutrientDao {
       
       Logger.error(`NutrientDao.getNutrientByFarmCode: 농장코드로 양액 데이터 조회 실패 - 농장코드: ${farmCode}, 에러: ${error.message}`);
       throw new Error(`농장코드로 양액 데이터 조회에 실패했습니다: ${error.message}`);
+    }
+  }
+
+  static async getNutrientDataByFarmIdAndDateRange(farmId, startDate, endDate) {
+    try {
+      if (!farmId || typeof farmId !== 'number' || farmId <= 0) {
+        throw new Error('유효한 농장 ID가 필요합니다.');
+      }
+      if (!startDate || !(startDate instanceof Date)) {
+        throw new Error('유효한 시작 날짜가 필요합니다.');
+      }
+      if (!endDate || !(endDate instanceof Date)) {
+        throw new Error('유효한 종료 날짜가 필요합니다.');
+      }
+
+      const nutrientData = await Nutrient.findAll({
+        where: {
+          farmId,
+          createdAt: {
+            [Op.gte]: startDate,
+            [Op.lt]: endDate
+          }
+        },
+        order: [['createdAt', 'ASC']]
+      });
+      return nutrientData;
+    } catch (error) {
+      Logger.error(`NutrientDao.getNutrientDataByFarmIdAndDateRange: 양액 데이터 조회 실패 - 농장ID: ${farmId}, 에러: ${error.message}`);
+      throw error;
     }
   }
 }
