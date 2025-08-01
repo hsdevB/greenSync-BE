@@ -2,6 +2,7 @@ import Logger from '../utils/logger.js';
 import TemperatureDao from '../dao/temperatureDao.js';
 import HumidityDao from '../dao/humidityDao.js';
 import Farm from '../models/farm.js';
+import NutrientDao from '../dao/nutrientDao.js';
 
 class ChartService {
 
@@ -103,7 +104,6 @@ class ChartService {
       
       timeGroups[0].push(...timeGroups[12]);
       timeGroups.splice(12, 1);
-      console.log(timeGroups);
 
       const averageData = timeGroups.map(group => {
         if (group.length === 0) return null;
@@ -119,6 +119,50 @@ class ChartService {
     }
   }
 
+  static async getNutrientDataByFarmCodeAndTimeGroups(farmCode, dateString = null) {
+    try {
+      const targetDateString = dateString || this.getCurrentDateString();
+      const farmId = await this.getFarmIdByFarmCode(farmCode); 
+      const targetDate = this.parseDate(targetDateString);
+      const startDate = new Date(targetDate);
+      const endDate = new Date(targetDate);
+      endDate.setDate(endDate.getDate() + 1);
+
+      const nutrientData = await NutrientDao.getNutrientDataByFarmIdAndDateRange(farmId, startDate, endDate);
+
+      const phTimeGroups = new Array(13).fill(null).map(() => []);
+      const ecTimeGroups = new Array(13).fill(null).map(() => []);
+      nutrientData.forEach(record => {
+        const hour = record.createdAt.getHours();
+        const groupIndex = this.getTimeGroupIndex(hour);
+        phTimeGroups[groupIndex+1].push(record.phLevel);
+        ecTimeGroups[groupIndex+1].push(record.elcDT);
+      });      
+      phTimeGroups[0].push(...phTimeGroups[12]);
+      ecTimeGroups[0].push(...ecTimeGroups[12]);
+      phTimeGroups.splice(12, 1);
+      ecTimeGroups.splice(12, 1);
+
+      const phAverageData = phTimeGroups.map(group => {
+        if (group.length === 0) return null;
+        const sum = group.reduce((acc, phLevel) => acc + phLevel, 0);
+        return Math.round((sum / group.length) * 10) / 10;
+      });
+      const ecAverageData = ecTimeGroups.map(group => {
+        if (group.length === 0) return null;
+        const sum = group.reduce((acc, ec) => acc + ec, 0);
+        return Math.round((sum / group.length) * 10) / 10;
+      });
+
+      Logger.info(`ChartService.getNutrientDataByFarmCodeAndTimeGroups: 최종 결과 - ${JSON.stringify(phAverageData)}`);
+      Logger.info(`ChartService.getNutrientDataByFarmCodeAndTimeGroups: 최종 결과 - ${JSON.stringify(ecAverageData)}`);
+      return { phAverageData, ecAverageData };
+    } catch (error) {
+      Logger.error(`ChartService.getNutrientDataByFarmCodeAndTimeGroups: 양액 데이터 그룹화 실패 - 농장코드: ${farmCode}, 에러: ${error.message}`);
+      throw error;
+    }
+  }
+
   static async getTemperatureChartData(farmCode, dateString = null) {
     try {
       const targetDateString = dateString || this.getCurrentDateString();
@@ -128,7 +172,12 @@ class ChartService {
       const chartData = {
         datasets: [
           {
-            data: sensorData,
+            label : '산도',
+            data: sensorData.phAverageData,
+          },
+          {
+            label : '전도도',
+            data: sensorData.ecAverageData,
           }
         ]
       };
@@ -161,12 +210,34 @@ class ChartService {
     }
   }
 
+  static async getNutrientChartData(farmCode, dateString = null) {
+    try {
+      const targetDateString = dateString || this.getCurrentDateString();
+      
+      const sensorData = await this.getNutrientDataByFarmCodeAndTimeGroups(farmCode, targetDateString); 
+
+      const chartData = {
+        datasets: [
+          {
+            data: sensorData,
+          }
+        ]
+      };
+
+      return chartData;
+    } catch (error) {
+      Logger.error(`ChartService.getNutrientChartData: 양액 차트 데이터 조회 실패 - 농장코드: ${farmCode}, 에러: ${error.message}`);
+      throw error;
+    }
+  }
+
   static async getCombinedChartData(farmCode, dateString = null) {
     try {
       const targetDateString = dateString || this.getCurrentDateString();
-      const [sensorTempData, sensorHumidityData] = await Promise.all([
+      const [sensorTempData, sensorHumidityData, sensorNutrientData] = await Promise.all([
         this.getTemperatureDataByFarmCodeAndTimeGroups(farmCode, targetDateString), 
-        this.getHumidityDataByFarmCodeAndTimeGroups(farmCode, targetDateString)
+        this.getHumidityDataByFarmCodeAndTimeGroups(farmCode, targetDateString),
+        this.getNutrientDataByFarmCodeAndTimeGroups(farmCode, targetDateString)
       ]);
       
       const chartData = {
@@ -178,6 +249,14 @@ class ChartService {
           {
             label: '센서 습도 (%)',
             data: sensorHumidityData,
+          },
+          {
+            label: '전도도',
+            data: sensorNutrientData.ecAverageData,
+          },
+          {
+            label: '산도',
+            data: sensorNutrientData.phAverageData,
           }
         ]
       };

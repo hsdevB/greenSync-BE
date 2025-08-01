@@ -62,6 +62,34 @@ chartRouter.get('/humidity/daily/:farmCode', async (req, res) => {
     });
   }
 });
+chartRouter.get('/nutrient/daily/:farmCode', async (req, res) => {
+  try {
+    const { farmCode } = req.params;
+    
+    if (!farmCode || typeof farmCode !== 'string' || farmCode.trim() === '') {
+      Logger.error('chartRouter.nutrient.daily: 농장 코드 파라미터가 누락되었습니다.'); 
+      return res.status(400).json({
+        success: false,
+        message: '유효한 농장 코드가 필요합니다.' 
+      });
+    }
+
+    const chartData = await chartService.getNutrientChartData(farmCode);
+    
+    res.status(200).json({
+      success: true,
+      message: '양액 차트 데이터 조회 성공', 
+      data: chartData 
+    });
+  } catch (error) {
+    Logger.error(`chartRouter.nutrient.daily: 양액 차트 데이터 조회 실패 - 농장코드: ${req.params?.farmCode}, 에러: ${error.message}`); 
+    res.status(500).json({
+      success: false,
+      message: '양액 차트 데이터 조회에 실패했습니다.',
+      error: error.message
+    });
+  }
+});
 
 chartRouter.get('/combined/daily/:farmCode', async (req, res) => {
   try {

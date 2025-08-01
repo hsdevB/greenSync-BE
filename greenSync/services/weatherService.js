@@ -72,14 +72,10 @@ class WeatherService {
     }
   }
 
-  static async getMappedWeatherData(cityName, farmCode) {
+  static async getMappedWeatherData(cityName) {
     try {
       if (!cityName || typeof cityName !== 'string') {
         throw new Error('유효하지 않은 도시명');
-      }
-
-      if (farmCode !== null && (isNaN(farmCode) || farmCode <= 0)) {
-        throw new Error('유효하지 않은 농장코드');
       }
 
       const cities = this.getKoreaCities();
@@ -121,7 +117,6 @@ class WeatherService {
 
       const finalData = {
         ...convertedData,
-        farmCode: farmCode
       };
 
       const apiTimeFormatted = this.formatTimestamp(apiTimestamp);
