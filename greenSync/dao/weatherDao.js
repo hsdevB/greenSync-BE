@@ -26,7 +26,6 @@ class WeatherDao {
                 dewPoint: this.toNumber(dbFields.dewPoint),
                 isDay: Boolean(dbFields.isDay),
                 isRain: Boolean(dbFields.isRain),
-                farmCode: dbFields.farmCode
             };
 
             // 각 필드별 유효성 검사 (함수 호출 대신 인라인으로)
@@ -115,19 +114,12 @@ class WeatherDao {
         }
     }
 
-    static async getLatestWeatherData(farmId = null) {
+    static async getLatestWeatherData() {
         try {
             const queryOptions = {
                 order: [['observationTime', 'DESC']],
                 limit: 1
             };
-
-            if (farmId !== null && (!isNaN(farmId) && parseInt(farmId) > 0)) {
-                queryOptions.where = { farmId: parseInt(farmId) };
-                Logger.info('WeatherDao.getLatestWeatherData: 특정 농장(' + farmId + ')의 최신 날씨 데이터 조회');
-            } else {
-                Logger.info('WeatherDao.getLatestWeatherData: 전체 농장의 최신 날씨 데이터 조회');
-            }
             
             const weather = await Weather.findOne(queryOptions);
             if (!weather) {
@@ -142,7 +134,7 @@ class WeatherDao {
         }
     }
 
-    static async getWeatherStats(farmId = null, period = '24h') {
+    static async getWeatherStats(period = '24h') {
         try {
             const now = new Date();
             let startDate;
@@ -174,12 +166,7 @@ class WeatherDao {
                 }
             };
 
-            if (farmId !== null && (!isNaN(farmId) && parseInt(farmId) > 0)) {
-                whereClause.farmId = parseInt(farmId);
-                Logger.info('WeatherDao.getWeatherStats: 특정 농장(' + farmId + ')의 ' + period + ' 날씨 통계 조회');
-            } else {
-                Logger.info('WeatherDao.getWeatherStats: 전체 농장의 ' + period + ' 날씨 통계 조회');
-            }
+            Logger.info('WeatherDao.getWeatherStats: 전체 농장의 ' + period + ' 날씨 통계 조회');
 
             const stats = await Weather.findAll({
                 where: whereClause,
