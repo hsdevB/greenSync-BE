@@ -35,6 +35,11 @@ class ChartService {
   static getTimeGroupIndex(hour) {
     return Math.floor(hour / 2);
   }
+  // dnutrient(양액)은 3시간마다의 데이터를 조회하려고함
+  static getNutrientTimeGroupIndex(hour) {
+    return Math.floor(hour / 3);
+  }
+
 
   static parseDate(dateString) {
     const year = parseInt(dateString.substring(0, 4));
@@ -45,6 +50,7 @@ class ChartService {
     return parsedDate;
   }
 
+  
   static async getTemperatureDataByFarmCodeAndTimeGroups(farmCode, dateString = null) {
     try {
       const targetDateString = dateString || this.getCurrentDateString();
@@ -134,7 +140,7 @@ class ChartService {
       const ecTimeGroups = new Array(13).fill(null).map(() => []);
       nutrientData.forEach(record => {
         const hour = record.createdAt.getHours();
-        const groupIndex = this.getTimeGroupIndex(hour);
+        const groupIndex = this.getNutrientTimeGroupIndex(hour);
         phTimeGroups[groupIndex+1].push(record.phLevel);
         ecTimeGroups[groupIndex+1].push(record.elcDT);
       });      
@@ -172,12 +178,7 @@ class ChartService {
       const chartData = {
         datasets: [
           {
-            label : '산도',
-            data: sensorData.phAverageData,
-          },
-          {
-            label : '전도도',
-            data: sensorData.ecAverageData,
+            data : sensorData
           }
         ]
       };
