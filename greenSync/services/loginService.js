@@ -38,7 +38,7 @@ class LoginService {
       }
 
       const farmInfo = await FarmDao.selectById(userInfo.farmId);
-      
+      // console.log(farmInfo);
       if (!farmInfo) {
         Logger.error(`LoginService.login: 농장 정보를 찾을 수 없음 - farmId: ${userInfo.farmId}`);
         throw new Error('농장 정보를 찾을 수 없습니다.');
@@ -56,6 +56,8 @@ class LoginService {
       return {
         token,
         farmCode: farmInfo.farmCode,
+        farmType: farmInfo.farmType,
+        houseType: farmInfo.houseType
       };
 
     } catch (err) {
