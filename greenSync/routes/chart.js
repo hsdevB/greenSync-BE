@@ -29,7 +29,7 @@ chartRouter.get('/temperature/daily/:farmCode', async (req, res) => {
     res.status(500).json({
       success: false,
       message: '온도 차트 데이터 조회에 실패했습니다.',
-      error: error.message // 디버깅용
+      error: error.message 
     });
   }
 });

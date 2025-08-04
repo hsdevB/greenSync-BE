@@ -4,9 +4,10 @@ import models from './models/index.js';
 import Logger from './utils/logger.js';
 import mqttClient from './mqtt/mqttClient.js';
 import WeatherCron from './utils/WeatherCron.js';
-
+import cors from 'cors'
 // Routes
 import Router from './routes/index.js';
+
 
 dotenv.config();
 
@@ -15,6 +16,13 @@ const app = express();
 const PORT = process.env.PORT || 3000;
 
 // Middleware
+app.use(cors({
+  origin: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE'], 
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With','token', 'Accept', 'Origin'],
+  exposedHeaders: ['Content-Length', 'X-Requested-With'], 
+  credentials: true, 
+}));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
