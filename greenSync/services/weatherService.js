@@ -165,7 +165,7 @@ class WeatherService {
         appid: this.API_KEY,
         units: 'metric',
         lang: 'ko',
-        exclude: 'minutely,hourly,daily,alerts'
+        exclude: 'minutely,alerts'
       };
 
       const response = await axios.get(url, { params, timeout: 15000 });
